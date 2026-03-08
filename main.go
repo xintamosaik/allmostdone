@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -99,6 +101,122 @@ func updateTodo(conn *pgx.Conn, id int, short string, description string, dueDat
 
 	return err
 }
+
+// helper to parse common form fields from a request
+func parseTodoForm(r *http.Request) (short string, description string, dueDate *time.Time, costOfDelay int16, effort string, err error) {
+	if err = r.ParseForm(); err != nil {
+		return
+	}
+	short = r.FormValue("short")
+	description = r.FormValue("description")
+	dateStr := r.FormValue("due_date")
+	if dateStr != "" {
+		var dt time.Time
+		dt, err = time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			return
+		}
+		dueDate = &dt
+	}
+	if codStr := r.FormValue("cost_of_delay"); codStr != "" {
+		var tmp int
+		tmp, err = strconv.Atoi(codStr)
+		if err != nil {
+			return
+		}
+		costOfDelay = int16(tmp)
+	}
+	effort = r.FormValue("effort")
+	return
+}
+
+// handlers ------------------------------------------------------------------
+
+func listHandler(conn *pgx.Conn) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		todos, err := getTodos(conn)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		h := templ.Handler(todosList(todos))
+		h.ServeHTTP(w, r)
+	}
+}
+
+func newHandler(conn *pgx.Conn) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		h := templ.Handler(todoForm(nil, "/todos"))
+		h.ServeHTTP(w, r)
+	}
+}
+
+func createHandler(conn *pgx.Conn) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		short, description, dueDate, costOfDelay, effort, err := parseTodoForm(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		_, err = createTodo(conn, short, description, dueDate, costOfDelay, effort)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// after create show updated list
+		listHandler(conn)(w, r)
+	}
+}
+
+func editHandler(conn *pgx.Conn) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// path: /todos/{id}/edit
+		parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+		if len(parts) < 3 {
+			http.NotFound(w, r)
+			return
+		}
+		id, err := strconv.Atoi(parts[1])
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		todo, err := getTodo(conn, id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		action := fmt.Sprintf("/todos/%d", id)
+		h := templ.Handler(todoForm(&todo, action))
+		h.ServeHTTP(w, r)
+	}
+}
+
+func updateHandler(conn *pgx.Conn) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// path: /todos/{id}
+		parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+		if len(parts) < 2 {
+			http.NotFound(w, r)
+			return
+		}
+		id, err := strconv.Atoi(parts[1])
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		short, description, dueDate, costOfDelay, effort, err := parseTodoForm(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if err = updateTodo(conn, id, short, description, dueDate, costOfDelay, effort); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		listHandler(conn)(w, r)
+	}
+}
 func main() {
 	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
@@ -115,14 +233,35 @@ func main() {
 
 	fmt.Println("Connected to database:", db)
 
+	// quick verify that the database is reachable
 	list, _ := getTodos(conn)
 	fmt.Println(list)
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 
-	component := hello("John")
-	http.Handle("/test", templ.Handler(component))
+	// todo endpoints
+	http.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			listHandler(conn)(w, r)
+		} else if r.Method == http.MethodPost {
+			createHandler(conn)(w, r)
+		} else {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/todos/new", newHandler(conn))
+
+	http.HandleFunc("/todos/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/edit") {
+			editHandler(conn)(w, r)
+		} else if r.Method == http.MethodPost {
+			updateHandler(conn)(w, r)
+		} else {
+			http.NotFound(w, r)
+		}
+	})
 
 	fmt.Println("Listening on :3000")
 	http.ListenAndServe(":3000", nil)

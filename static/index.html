@@ -15,10 +15,13 @@
     fx-swap: innerHTML is default
     fx-trigger: click is default for buttons for example
     -->
-    <button fx-action="/test" fx-target="#output">
-        Get Content
+    <button fx-action="/todos" fx-target="#output">
+        List todos
     </button>
-  
+    <button fx-action="/todos/new" fx-target="#output">
+        New todo
+    </button>
+
     <output id="output"></output>
 
 </body>
