@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	fs := http.FileServer(http.Dir("static/"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/", fs)
 	component := hello("John")
 	
 	http.Handle("/test", templ.Handler(component))
