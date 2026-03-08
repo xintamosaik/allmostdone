@@ -10,10 +10,15 @@
 </head>
 
 <body>
-    <h1>To-Do List</h1>
-    <button fx-action="/test" fx-method="get" fx-trigger="click" fx-target="#output" fx-swap="innerHTML">
+    <!--
+    method: get is default
+    fx-swap: innerHTML is default
+    fx-trigger: click is default for buttons for example
+    -->
+    <button fx-action="/test" fx-target="#output">
         Get Content
     </button>
+  
     <output id="output"></output>
 
 </body>
