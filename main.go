@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-
 	"os"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/jackc/pgx/v5"
@@ -15,27 +15,36 @@ type Todo struct {
 	ID          int
 	Short       string
 	Description string
+	DueDate     *time.Time
+	CostOfDelay int16
+	Effort      string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
-func createTodo(conn *pgx.Conn, short string, description string) (Todo, error) {
+func createTodo(conn *pgx.Conn, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) (Todo, error) {
 	var t Todo
 
 	err := conn.QueryRow(
 		context.Background(),
-		`INSERT INTO todos (short, description)
-		 VALUES ($1, $2)
-		 RETURNING id, short, description`,
+		`INSERT INTO todos (short, description, due_date, cost_of_delay, effort)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, short, description, due_date, cost_of_delay, effort, created_at, updated_at`,
 		short,
 		description,
-	).Scan(&t.ID, &t.Short, &t.Description)
+		dueDate,
+		costOfDelay,
+		effort,
+	).Scan(&t.ID, &t.Short, &t.Description, &t.DueDate, &t.CostOfDelay, &t.Effort, &t.CreatedAt, &t.UpdatedAt)
 
 	return t, err
 }
+
 func getTodos(conn *pgx.Conn) ([]Todo, error) {
 	rows, err := conn.Query(context.Background(),
-		`SELECT id, short, description
-		 FROM todos
-		 ORDER BY id`)
+		`SELECT id, short, description, due_date, cost_of_delay, effort, created_at, updated_at
+         FROM todos
+         ORDER BY id`)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +54,7 @@ func getTodos(conn *pgx.Conn) ([]Todo, error) {
 
 	for rows.Next() {
 		var t Todo
-		err := rows.Scan(&t.ID, &t.Short, &t.Description)
+		err := rows.Scan(&t.ID, &t.Short, &t.Description, &t.DueDate, &t.CostOfDelay, &t.Effort, &t.CreatedAt, &t.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -54,28 +63,37 @@ func getTodos(conn *pgx.Conn) ([]Todo, error) {
 
 	return todos, nil
 }
+
 func getTodo(conn *pgx.Conn, id int) (Todo, error) {
 	var t Todo
 
 	err := conn.QueryRow(
 		context.Background(),
-		`SELECT id, short, description
-		 FROM todos
-		 WHERE id=$1`,
+		`SELECT id, short, description, due_date, cost_of_delay, effort, created_at, updated_at
+         FROM todos
+         WHERE id=$1`,
 		id,
-	).Scan(&t.ID, &t.Short, &t.Description)
+	).Scan(&t.ID, &t.Short, &t.Description, &t.DueDate, &t.CostOfDelay, &t.Effort, &t.CreatedAt, &t.UpdatedAt)
 
 	return t, err
 }
-func updateTodo(conn *pgx.Conn, id int, short string, description string) error {
+
+func updateTodo(conn *pgx.Conn, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
 	_, err := conn.Exec(
 		context.Background(),
 		`UPDATE todos
-		 SET short=$1,
-		     description=$2
-		 WHERE id=$3`,
+         SET short=$1,
+             description=$2,
+             due_date=$3,
+             cost_of_delay=$4,
+             effort=$5,
+             updated_at=now()
+         WHERE id=$6`,
 		short,
 		description,
+		dueDate,
+		costOfDelay,
+		effort,
 		id,
 	)
 
@@ -96,7 +114,7 @@ func main() {
 	}
 
 	fmt.Println("Connected to database:", db)
-	
+
 	list, _ := getTodos(conn)
 	fmt.Println(list)
 
