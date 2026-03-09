@@ -243,7 +243,7 @@ func main() {
 	// todo endpoints
 	http.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
-case http.MethodGet:
+		case http.MethodGet:
 			listHandler(conn)(w, r)
 		case http.MethodPost:
 			createHandler(conn)(w, r)
