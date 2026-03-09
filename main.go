@@ -144,7 +144,7 @@ func listHandler(conn *pgx.Conn) http.HandlerFunc {
 	}
 }
 
-func newHandler(conn *pgx.Conn) http.HandlerFunc {
+func newHandler(_ *pgx.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		h := templ.Handler(todoForm(nil, "/todos"))
 		h.ServeHTTP(w, r)
@@ -242,11 +242,12 @@ func main() {
 
 	// todo endpoints
 	http.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
+		switch r.Method {
+case http.MethodGet:
 			listHandler(conn)(w, r)
-		} else if r.Method == http.MethodPost {
+		case http.MethodPost:
 			createHandler(conn)(w, r)
-		} else {
+		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
