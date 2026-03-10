@@ -22,6 +22,11 @@ templ todosList(todos []Todo) {
 }
 
 templ todoForm(todo *Todo, action string) {
+    // ensure we always have a non-nil todo pointer to avoid panics
+    if todo == nil {
+        var empty Todo
+        todo = &empty
+    }
     <form method="POST" action={action}>
         <div>
             <label>
@@ -35,7 +40,16 @@ templ todoForm(todo *Todo, action string) {
             </label>
         </div>
         <div>
-            <label>Due date: <input type="date" name="due_date" value={todo.DueDate.Format("2006-01-02")} /></label>
+            <label>Due date: <input type="date" name="due_date" value={
+                // safe formatting when DueDate pointer might be nil
+                func() string {
+                    if todo.DueDate == nil {
+                        return ""
+                    }
+                    return todo.DueDate.Format("2006-01-02")
+                }()
+            } />
+            </label>
         </div>
         <div>
             <label>Cost of delay: <input type="number" name="cost_of_delay" value={todo.CostOfDelay} /></label>

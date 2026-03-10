@@ -146,7 +146,10 @@ func listHandler(conn *pgx.Conn) http.HandlerFunc {
 
 func newHandler(_ *pgx.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		h := templ.Handler(todoForm(nil, "/todos"))
+		// create an empty Todo so the template never receives a nil pointer
+		// (the template itself will also guard against nil values).
+		empty := &Todo{}
+		h := templ.Handler(todoForm(empty, "/todos"))
 		h.ServeHTTP(w, r)
 	}
 }
