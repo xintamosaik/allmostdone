@@ -151,8 +151,6 @@ func listHandler(conn *pgx.Conn) http.HandlerFunc {
 		t, err := template.New("webpage").Parse(todoList)
 		check(err)
 		t.Execute(w, todos)
-		// h := templ.Handler(todosList(todos))
-		// h.ServeHTTP(w, r)
 	}
 }
 
@@ -164,8 +162,6 @@ func newHandler(_ *pgx.Conn) http.HandlerFunc {
 		t, err := template.New("webpage").Parse(todoList)
 		check(err)
 		t.Execute(w, empty)
-		// h := templ.Handler(todoForm(empty, "/todos"))
-		// h.ServeHTTP(w, r)
 	}
 }
 
@@ -204,8 +200,7 @@ func editHandler(conn *pgx.Conn) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		// action := fmt.Sprintf("/todos/%d", id)
-		// h := templ.Handler(todoForm(&todo, action))
+	
 		t, err := template.New("webpage").Parse(todoList)
 		check(err)
 		t.Execute(w, todo)
