@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"html/template"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -22,6 +23,14 @@ type Todo struct {
 	Effort      string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+const todoList = `
+<h1>Todo List</h1>
+`
+func check (err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func createTodo(conn *pgx.Conn, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) (Todo, error) {
@@ -139,8 +148,11 @@ func listHandler(conn *pgx.Conn) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		h := templ.Handler(todosList(todos))
-		h.ServeHTTP(w, r)
+		t, err := template.New("webpage").Parse(todoList)
+		check(err)
+		t.Execute(w, todos)
+		// h := templ.Handler(todosList(todos))
+		// h.ServeHTTP(w, r)
 	}
 }
 
@@ -149,8 +161,11 @@ func newHandler(_ *pgx.Conn) http.HandlerFunc {
 		// create an empty Todo so the template never receives a nil pointer
 		// (the template itself will also guard against nil values).
 		empty := &Todo{}
-		h := templ.Handler(todoForm(empty, "/todos"))
-		h.ServeHTTP(w, r)
+		t, err := template.New("webpage").Parse(todoList)
+		check(err)
+		t.Execute(w, empty)
+		// h := templ.Handler(todoForm(empty, "/todos"))
+		// h.ServeHTTP(w, r)
 	}
 }
 
@@ -189,9 +204,11 @@ func editHandler(conn *pgx.Conn) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		action := fmt.Sprintf("/todos/%d", id)
-		h := templ.Handler(todoForm(&todo, action))
-		h.ServeHTTP(w, r)
+		// action := fmt.Sprintf("/todos/%d", id)
+		// h := templ.Handler(todoForm(&todo, action))
+		t, err := template.New("webpage").Parse(todoList)
+		check(err)
+		t.Execute(w, todo)
 	}
 }
 
@@ -221,6 +238,7 @@ func updateHandler(conn *pgx.Conn) http.HandlerFunc {
 	}
 }
 func main() {
+
 	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
