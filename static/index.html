@@ -16,19 +16,15 @@
 
 </head>
 
-<body>
- 
-<main id="output" style="min-height: 100vh;">
-
-    Trying to fetch initial content. See console for errors if it doesn't work.
-    <script>
-        const output = document.getElementById('output');
-        fetch("/todos/list")
-            .then(response => response.text())
-            .then(html => output.innerHTML = html)
-            .catch(error => console.error('Error fetching initial content:', error));
-    </script>
-</main>
+<body id="output" style="min-height: 100vh;">
+Trying to fetch initial content. See console for errors if it doesn't work.
+<script>
+    const output = document.getElementById('output');
+    fetch("/todos/list")
+        .then(response => response.text())
+        .then(html => output.innerHTML = html)
+        .catch(error => console.error('Error fetching initial content:', error));
+</script>
 </body>
 
 </html>
