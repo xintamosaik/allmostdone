@@ -27,8 +27,13 @@ const editForm = `
   <label for="cost_of_delay">Cost of Delay:</label><br>
   <input type="number" id="cost_of_delay" name="cost_of_delay" value="{{.CostOfDelay}}"><br>
 
-  <label for="effort">Effort:</label><br>
-  <input type="text" id="effort" name="effort" value="{{.Effort}}"><br><br>
+<select id="effort" name="effort">
+  <option value="mins" {{if eq .Effort "mins"}}selected{{end}}>mins</option>
+  <option value="hours" {{if eq .Effort "hours"}}selected{{end}}>hours</option>
+  <option value="days" {{if eq .Effort "days"}}selected{{end}}>days</option>
+  <option value="weeks" {{if eq .Effort "weeks"}}selected{{end}}>weeks</option>
+  <option value="months" {{if eq .Effort "months"}}selected{{end}}>months</option>
+</select>
 
   <input type="submit" value="Update">
 </form>
