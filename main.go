@@ -8,7 +8,7 @@ import (
 	"os"
  
 	"strconv"
-	"strings"
+ 
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -82,30 +82,12 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 
-	// todo endpoints
-	http.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			listHandler(conn)(w, r)
-		case http.MethodPost:
-			createHandler(conn)(w, r)
-		default:
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
+	http.HandleFunc("/todos/list", listHandler(conn))
+	http.HandleFunc("/todos/create", createHandler(conn))
 	http.HandleFunc("/todos/new", newHandler(conn))
-
-	http.HandleFunc("/todos/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/edit") {
-			editHandler(conn)(w, r)
-		} else if r.Method == http.MethodPost {
-			updateHandler(conn)(w, r)
-		} else {
-			http.NotFound(w, r)
-		}
-	})
-
+	http.HandleFunc("/todos/edit", editHandler(conn))
+	http.HandleFunc("/todos/update", updateHandler(conn))
+	
 	fmt.Println("Listening on :3000")
 	http.ListenAndServe(":3000", nil)
 }
