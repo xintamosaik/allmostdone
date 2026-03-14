@@ -8,11 +8,11 @@ body {
 header, main {
     
     width: 100%;
-    max-width: 800px;
+ 
  
 }
 
-button {
+button, input[type="submit"] {
     padding: 0.5em 1em;
     background-color: black;
     font-size: 1em;
@@ -20,13 +20,28 @@ button {
     border-radius: 5px;
 }
 
-button:hover {
+button:hover, input[type="submit"]:hover {
     border-color: hotpink;
 }
 
-input, textarea, select {
+input:not([type="submit"]), textarea, select {
     padding: 0.5em;
     margin-bottom: 1em;
     border-radius: 5px;
     border: 1px solid #ccc;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, tr:not(:last-child) td {
+    border-bottom: 1px solid #ccc;
+ 
+}
+
+th, td {
+    padding: 0.5em;
+    text-align: left;
 }
