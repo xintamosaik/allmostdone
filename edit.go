@@ -1,12 +1,12 @@
 package main
 
 import (
+	"context"
 	"html/template"
 	"net/http"
-    "strconv"
-    "strings"
-    "context"
-    "time"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -28,7 +28,7 @@ const editForm = `
 </form>
 `
 
-  func updateTodo(conn *pgx.Conn, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
+func updateTodo(conn *pgx.Conn, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
 	_, err := conn.Exec(
 		context.Background(),
 		`UPDATE todos
@@ -49,33 +49,29 @@ const editForm = `
 
 	return err
 }
-
 func updateHandler(conn *pgx.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// path: /todos/{id}
-		parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-		if len(parts) < 2 {
-			http.NotFound(w, r)
-			return
-		}
-		id, err := strconv.Atoi(parts[1])
+		id, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
+
 		short, description, dueDate, costOfDelay, effort, err := parseTodoForm(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
 		if err = updateTodo(conn, id, short, description, dueDate, costOfDelay, effort); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		listHandler(conn)(w, r)
 	}
 }
-
+ 
 func getTodo(conn *pgx.Conn, id int) (Todo, error) {
 	var t Todo
 
@@ -93,7 +89,7 @@ func getTodo(conn *pgx.Conn, id int) (Todo, error) {
 // editHandler serves the form to edit an existing todo item. Path: /todos/{id}/edit
 func editHandler(conn *pgx.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-	 
+
 		parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 		if len(parts) < 3 {
 			http.NotFound(w, r)
@@ -109,10 +105,9 @@ func editHandler(conn *pgx.Conn) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-	
+
 		t, err := template.New("webpage").Parse(editForm)
 		check(err)
 		t.Execute(w, todo)
 	}
 }
-
