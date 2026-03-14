@@ -79,11 +79,11 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 
-	http.HandleFunc("/todos/list", listHandler(conn))
-	http.HandleFunc("/todos/create", createHandler(conn))
-	http.HandleFunc("/todos/new", newHandler(conn))
-	http.HandleFunc("/todos/edit", editHandler(conn))
-	http.HandleFunc("/todos/update", updateHandler(conn))
+	http.HandleFunc("GET /todos/list", listHandler(conn))
+	http.HandleFunc("GET /todos/new", newHandler(conn))
+	http.HandleFunc("POST /todos", createHandler(conn))
+	http.HandleFunc("GET /todos/{id}/edit", editHandler(conn))
+	http.HandleFunc("POST /todos/{id}", updateHandler(conn))
 	
 	fmt.Println("Listening on :3000")
 	http.ListenAndServe(":3000", nil)
