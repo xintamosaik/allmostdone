@@ -26,7 +26,7 @@ const newForm = `
   <textarea id="description" name="description"></textarea><br>
 
   <label for="due_date">Due Date (YYYY-MM-DD):</label><br>
-  <input type="text" id="due_date" name="due_date"><br>
+  <input type="date" id="due_date" name="due_date"><br>
 
   <label for="cost_of_delay">Cost of Delay:</label><br>
   <input type="number" id="cost_of_delay" name="cost_of_delay" min="-2" max="2"><br>

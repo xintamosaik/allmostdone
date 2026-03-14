@@ -27,7 +27,7 @@ const editForm = `
   <textarea id="description" name="description">{{.Description}}</textarea><br>
 
   <label for="due_date">Due Date (YYYY-MM-DD):</label><br>
-  <input type="text" id="due_date" name="due_date" value="{{if .DueDate}}{{.DueDate.Format "2006-01-02"}}{{end}}"><br>
+  <input type="date" id="due_date" name="due_date" value="{{if .DueDate}}{{.DueDate.Format "2006-01-02"}}{{end}}">
 
   <label for="cost_of_delay">Cost of Delay:</label><br>
   <input type="number" id="cost_of_delay" name="cost_of_delay" min="-2" max="2" value="{{.CostOfDelay}}"><br>
@@ -86,6 +86,10 @@ func updateHandler(conn *pgx.Conn) http.HandlerFunc {
 		}
 
 		if err = updateTodo(conn, id, short, description, dueDate, costOfDelay, effort); err != nil {
+			if err == pgx.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
