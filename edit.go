@@ -75,6 +75,21 @@ func updateHandler(conn *pgx.Conn) http.HandlerFunc {
 		listHandler(conn)(w, r)
 	}
 }
+
+func getTodo(conn *pgx.Conn, id int) (Todo, error) {
+	var t Todo
+
+	err := conn.QueryRow(
+		context.Background(),
+		`SELECT id, short, description, due_date, cost_of_delay, effort, created_at, updated_at
+         FROM todos
+         WHERE id=$1`,
+		id,
+	).Scan(&t.ID, &t.Short, &t.Description, &t.DueDate, &t.CostOfDelay, &t.Effort, &t.CreatedAt, &t.UpdatedAt)
+
+	return t, err
+}
+
 // editHandler serves the form to edit an existing todo item. Path: /todos/{id}/edit
 func editHandler(conn *pgx.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

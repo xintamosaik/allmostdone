@@ -9,7 +9,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 )
-
+ 
 const newForm = `
 <h1>Create Todo</h1>
 <form action="/todos" method="post">
@@ -26,20 +26,6 @@ const newForm = `
   <input type="submit" value="Create">
 </form>
 `
-
-func getTodo(conn *pgx.Conn, id int) (Todo, error) {
-	var t Todo
-
-	err := conn.QueryRow(
-		context.Background(),
-		`SELECT id, short, description, due_date, cost_of_delay, effort, created_at, updated_at
-         FROM todos
-         WHERE id=$1`,
-		id,
-	).Scan(&t.ID, &t.Short, &t.Description, &t.DueDate, &t.CostOfDelay, &t.Effort, &t.CreatedAt, &t.UpdatedAt)
-
-	return t, err
-}
 
 func createTodo(conn *pgx.Conn, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) (Todo, error) {
 	var t Todo
@@ -82,7 +68,7 @@ func newHandler(_ *pgx.Conn) http.HandlerFunc {
 		// create an empty Todo so the template never receives a nil pointer
 		// (the template itself will also guard against nil values).
 		empty := &Todo{}
-		t, err := template.New("webpage").Parse(html_test)
+		t, err := template.New("webpage").Parse(newForm)
 		check(err)
 		t.Execute(w, empty)
 	}

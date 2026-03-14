@@ -75,9 +75,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println("Connected to database:", db)
-
  
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
