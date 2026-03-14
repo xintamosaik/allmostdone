@@ -12,23 +12,34 @@ import (
 
 const newForm = `
 <h1>Create Todo</h1>
-<form action="/todos/create" method="post">
+<form
+  action="/todos/create"
+  method="post"
+  fx-action="/todos/create"
+  fx-method="POST"
+  fx-target="#output"
+  fx-swap="innerHTML">
   <label for="short">Short:</label><br>
   <input type="text" id="short" name="short"><br>
+
   <label for="description">Description:</label><br>
   <textarea id="description" name="description"></textarea><br>
+
   <label for="due_date">Due Date (YYYY-MM-DD):</label><br>
   <input type="text" id="due_date" name="due_date"><br>
+
   <label for="cost_of_delay">Cost of Delay:</label><br>
   <input type="number" id="cost_of_delay" name="cost_of_delay" min="-2" max="2"><br>
-	<label for="effort">Effort:</label><br>
-	<select id="effort" name="effort">
-	<option value="mins">mins</option>
-	<option value="hours">hours</option>
-	<option value="days">days</option>
-	<option value="weeks">weeks</option>
-	<option value="months">months</option>
-</select><br><br>
+
+  <label for="effort">Effort:</label><br>
+  <select id="effort" name="effort">
+    <option value="mins">mins</option>
+    <option value="hours" selected>hours</option>
+    <option value="days">days</option>
+    <option value="weeks">weeks</option>
+    <option value="months">months</option>
+  </select><br><br>
+
   <input type="submit" value="Create">
 </form>
 `

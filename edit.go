@@ -11,10 +11,15 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
- 
 const editForm = `
 <h1>Edit Todo</h1>
-<form action="/todos/{{.ID}}/update" method="post">
+<form
+  action="/todos/{{.ID}}/update"
+  method="post"
+  fx-action="/todos/{{.ID}}/update"
+  fx-method="POST"
+  fx-target="#output"
+  fx-swap="innerHTML">
   <label for="short">Short:</label><br>
   <input type="text" id="short" name="short" value="{{.Short}}"><br>
 
@@ -25,20 +30,20 @@ const editForm = `
   <input type="text" id="due_date" name="due_date" value="{{if .DueDate}}{{.DueDate.Format "2006-01-02"}}{{end}}"><br>
 
   <label for="cost_of_delay">Cost of Delay:</label><br>
-  <input type="number" id="cost_of_delay" name="cost_of_delay" value="{{.CostOfDelay}}"><br>
+  <input type="number" id="cost_of_delay" name="cost_of_delay" min="-2" max="2" value="{{.CostOfDelay}}"><br>
 
-<select id="effort" name="effort">
-  <option value="mins" {{if eq .Effort "mins"}}selected{{end}}>mins</option>
-  <option value="hours" {{if eq .Effort "hours"}}selected{{end}}>hours</option>
-  <option value="days" {{if eq .Effort "days"}}selected{{end}}>days</option>
-  <option value="weeks" {{if eq .Effort "weeks"}}selected{{end}}>weeks</option>
-  <option value="months" {{if eq .Effort "months"}}selected{{end}}>months</option>
-</select>
+  <label for="effort">Effort:</label><br>
+  <select id="effort" name="effort">
+    <option value="mins" {{if eq .Effort "mins"}}selected{{end}}>mins</option>
+    <option value="hours" {{if eq .Effort "hours"}}selected{{end}}>hours</option>
+    <option value="days" {{if eq .Effort "days"}}selected{{end}}>days</option>
+    <option value="weeks" {{if eq .Effort "weeks"}}selected{{end}}>weeks</option>
+    <option value="months" {{if eq .Effort "months"}}selected{{end}}>months</option>
+  </select><br><br>
 
   <input type="submit" value="Update">
 </form>
 `
- 
 func updateTodo(conn *pgx.Conn, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
 	_, err := conn.Exec(
 		context.Background(),

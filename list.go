@@ -32,7 +32,11 @@ const todoList = `
         <td>{{.Effort}}</td>
         <td>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
         <td>{{.UpdatedAt.Format "2006-01-02 15:04:05"}}</td>
-        <td><a href="/todos/{{.ID}}/edit">Edit</a></td>
+        <td>
+            <button fx-action="/todos/{{.ID}}/edit" fx-target="#output" fx-swap="innerHTML">
+                Edit
+            </button>
+        </td>
     </tr>
     {{end}}
 </table>
