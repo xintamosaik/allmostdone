@@ -3,7 +3,7 @@ CREATE TYPE effort AS ENUM (
     'hours',
     'days',
     'weeks',
-    'months',
+    'months'
 );
 
 CREATE TABLE todos (

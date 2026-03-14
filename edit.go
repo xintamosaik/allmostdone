@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
-	"strings"
+	 
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -95,17 +95,12 @@ func getTodo(conn *pgx.Conn, id int) (Todo, error) {
 // editHandler serves the form to edit an existing todo item. Path: /todos/{id}/edit
 func editHandler(conn *pgx.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
-		parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-		if len(parts) < 3 {
-			http.NotFound(w, r)
-			return
-		}
-		id, err := strconv.Atoi(parts[1])
+		id, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
+
 		todo, err := getTodo(conn, id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -113,7 +108,13 @@ func editHandler(conn *pgx.Conn) http.HandlerFunc {
 		}
 
 		t, err := template.New("webpage").Parse(editForm)
-		check(err)
-		t.Execute(w, todo)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := t.Execute(w, todo); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 }

@@ -1,9 +1,9 @@
 package main
 
 import (
+	"context"
 	"html/template"
 	"net/http"
-    "context"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -20,6 +20,7 @@ const todoList = `
         <th>Effort</th>
         <th>Created At</th>
         <th>Updated At</th>
+        <th>Actions</th>
     </tr>
     {{range .}}
     <tr>
@@ -31,10 +32,12 @@ const todoList = `
         <td>{{.Effort}}</td>
         <td>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
         <td>{{.UpdatedAt.Format "2006-01-02 15:04:05"}}</td>
+        <td><a href="/todos/{{.ID}}/edit">Edit</a></td>
     </tr>
     {{end}}
 </table>
 `
+
 func getTodos(conn *pgx.Conn) ([]Todo, error) {
 	rows, err := conn.Query(context.Background(),
 		`SELECT id, short, description, due_date, cost_of_delay, effort, created_at, updated_at
@@ -55,7 +58,9 @@ func getTodos(conn *pgx.Conn) ([]Todo, error) {
 		}
 		todos = append(todos, t)
 	}
-
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return todos, nil
 }
 
@@ -67,12 +72,10 @@ func listHandler(conn *pgx.Conn) http.HandlerFunc {
 			return
 		}
 		t, err := template.New("webpage").Parse(todoList)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		t.Execute(w, todos)
 	}
 }
-
- 

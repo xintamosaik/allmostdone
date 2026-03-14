@@ -3,12 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
- 
+
 	"strconv"
- 
+
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -24,14 +23,10 @@ type Todo struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
+
 const html_test = `
 <h1>Todo List</h1>
 `
-func check (err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 // helper to parse common form fields from a request
 func parseTodoForm(r *http.Request) (short string, description string, dueDate *time.Time, costOfDelay int16, effort string, err error) {
@@ -55,6 +50,10 @@ func parseTodoForm(r *http.Request) (short string, description string, dueDate *
 		if err != nil {
 			return
 		}
+		if tmp < -2 || tmp > 2 {
+			err = fmt.Errorf("cost_of_delay must be between -2 and 2")
+			return
+		}
 		costOfDelay = int16(tmp)
 	}
 	effort = r.FormValue("effort")
@@ -75,7 +74,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
- 
+
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 
@@ -84,7 +83,7 @@ func main() {
 	http.HandleFunc("POST /todos/create", createHandler(conn))
 	http.HandleFunc("GET /todos/{id}/edit", editHandler(conn))
 	http.HandleFunc("POST /todos/{id}/update", updateHandler(conn))
-	
+
 	fmt.Println("Listening on :3000")
 	http.ListenAndServe(":3000", nil)
 }
