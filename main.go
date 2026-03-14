@@ -81,9 +81,9 @@ func main() {
 
 	http.HandleFunc("GET /todos/list", listHandler(conn))
 	http.HandleFunc("GET /todos/new", newHandler(conn))
-	http.HandleFunc("POST /todos", createHandler(conn))
+	http.HandleFunc("POST /todos/create", createHandler(conn))
 	http.HandleFunc("GET /todos/{id}/edit", editHandler(conn))
-	http.HandleFunc("POST /todos/{id}", updateHandler(conn))
+	http.HandleFunc("POST /todos/{id}/update", updateHandler(conn))
 	
 	fmt.Println("Listening on :3000")
 	http.ListenAndServe(":3000", nil)

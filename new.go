@@ -12,7 +12,7 @@ import (
  
 const newForm = `
 <h1>Create Todo</h1>
-<form action="/todos" method="post">
+<form action="/todos/create" method="post">
   <label for="short">Short:</label><br>
   <input type="text" id="short" name="short"><br>
   <label for="description">Description:</label><br>

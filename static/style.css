@@ -6,7 +6,8 @@ body {
 }
 
 header, main {
-    background-color: darkgrey;
+    border: 1px solid hotpink;
     width: 100%;
     max-width: 800px;
+    padding: 1em;
 }

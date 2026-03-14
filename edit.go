@@ -11,23 +11,29 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+ 
 const editForm = `
 <h1>Edit Todo</h1>
-<form action="/todos" method="post">
+<form action="/todos/{{.ID}}/update" method="post">
   <label for="short">Short:</label><br>
-  <input type="text" id="short" name="short"><br>
+  <input type="text" id="short" name="short" value="{{.Short}}"><br>
+
   <label for="description">Description:</label><br>
-  <textarea id="description" name="description"></textarea><br>
+  <textarea id="description" name="description">{{.Description}}</textarea><br>
+
   <label for="due_date">Due Date (YYYY-MM-DD):</label><br>
-  <input type="text" id="due_date" name="due_date"><br>
+  <input type="text" id="due_date" name="due_date" value="{{if .DueDate}}{{.DueDate.Format "2006-01-02"}}{{end}}"><br>
+
   <label for="cost_of_delay">Cost of Delay:</label><br>
-  <input type="number" id="cost_of_delay" name="cost_of_delay"><br>
+  <input type="number" id="cost_of_delay" name="cost_of_delay" value="{{.CostOfDelay}}"><br>
+
   <label for="effort">Effort:</label><br>
-  <input type="text" id="effort" name="effort"><br><br>
-  <input type="submit" value="Create">
+  <input type="text" id="effort" name="effort" value="{{.Effort}}"><br><br>
+
+  <input type="submit" value="Update">
 </form>
 `
-
+ 
 func updateTodo(conn *pgx.Conn, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
 	_, err := conn.Exec(
 		context.Background(),
