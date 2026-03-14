@@ -7,23 +7,27 @@
     <meta name="color-scheme" content="light dark">
     <title>Document</title>
     <script src="./fixi-0.9.2.js"></script>
-</head>
-
-<body>
+    <link rel="stylesheet" href="style.css">
     <!--
     method: get is default
     fx-swap: innerHTML is default
     fx-trigger: click is default for buttons for example
     -->
-    <button fx-action="/todos/list" fx-target="#output" fx-swap="innerHTML">
-        List todos
-    </button>
-    <button fx-action="/todos/new" fx-target="#output" fx-swap="innerHTML">
-        New todo
-    </button>
 
-    <output id="output"></output>
+</head>
 
+<body>
+    <header>
+        <button fx-action="/todos/list" fx-target="#output" fx-swap="innerHTML">
+            List todos
+        </button>
+        <button fx-action="/todos/new" fx-target="#output" fx-swap="innerHTML">
+            New todo
+        </button>
+    </header>
+    <main>
+        <output id="output"></output>
+    </main>
 </body>
 
 </html>
