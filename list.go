@@ -9,6 +9,9 @@ import (
 )
 
 const todoList = `
+<button fx-action="/todos/new" fx-target="#output" fx-swap="innerHTML">
+  New todo
+</button>
 <h1>Todo List</h1>
 <table>
     <tr>

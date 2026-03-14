@@ -41,7 +41,9 @@ const newForm = `
   </select><br><br>
 
   <input type="submit" value="Create">
-  
+  <button type="button" fx-action="/todos/list" fx-target="#output" fx-swap="innerHTML">
+    Cancel
+  </button>
 </form>
 `
 

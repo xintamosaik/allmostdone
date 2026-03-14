@@ -42,6 +42,9 @@ const editForm = `
   </select><br><br>
 
   <input type="submit" value="Update">
+  <button type="button" fx-action="/todos/list" fx-target="#output" fx-swap="innerHTML">
+    Cancel
+  </button>
 </form>
 `
 
