@@ -41,9 +41,7 @@ const newForm = `
   </select><br><br>
 
   <input type="submit" value="Create">
-  <button type="button" fx-action="/todos/list" fx-target="#output" fx-swap="innerHTML">
-    Cancel
-  </button>
+	  {{template "backButton"}}
 </form>
 `
 
@@ -87,7 +85,7 @@ func newHandler(_ *pgx.Conn) http.HandlerFunc {
 		// create an empty Todo so the template never receives a nil pointer
 		// (the template itself will also guard against nil values).
 		empty := &Todo{}
-		t, err := template.New("webpage").Parse(newForm)
+		t, err := template.New("webpage").Parse(newForm + backButton)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

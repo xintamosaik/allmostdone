@@ -42,9 +42,7 @@ const editForm = `
   </select><br><br>
 
   <input type="submit" value="Update">
-  <button type="button" fx-action="/todos/list" fx-target="#output" fx-swap="innerHTML">
-    Cancel
-  </button>
+    {{template "backButton"}}
 </form>
 `
 
@@ -134,7 +132,7 @@ func editHandler(conn *pgx.Conn) http.HandlerFunc {
 			return
 		}
 
-		t, err := template.New("webpage").Parse(editForm)
+		t, err := template.New("webpage").Parse(editForm + backButton)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
