@@ -41,6 +41,7 @@ const newForm = `
   </select><br><br>
 
   <input type="submit" value="Create">
+  
 </form>
 `
 

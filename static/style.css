@@ -6,8 +6,27 @@ body {
 }
 
 header, main {
-    border: 1px solid hotpink;
+    
     width: 100%;
     max-width: 800px;
-    padding: 1em;
+ 
+}
+
+button {
+    padding: 0.5em 1em;
+    background-color: black;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    border-color: hotpink;
+}
+
+input, textarea, select {
+    padding: 0.5em;
+    margin-bottom: 1em;
+    border-radius: 5px;
+    border: 1px solid #ccc;
 }
