@@ -57,6 +57,15 @@ func parseTodoForm(r *http.Request) (short string, description string, dueDate *
 		costOfDelay = int16(tmp)
 	}
 	effort = r.FormValue("effort")
+	switch effort {
+	case "mins", "hours", "days", "weeks", "months":
+		// ok
+	case "":
+		effort = "hours"
+	default:
+		err = fmt.Errorf("invalid effort")
+		return
+	}
 	return
 }
 

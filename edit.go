@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
-	 
+
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -44,8 +44,9 @@ const editForm = `
   <input type="submit" value="Update">
 </form>
 `
+
 func updateTodo(conn *pgx.Conn, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
-	_, err := conn.Exec(
+	tag, err := conn.Exec(
 		context.Background(),
 		`UPDATE todos
          SET short=$1,
@@ -62,8 +63,13 @@ func updateTodo(conn *pgx.Conn, id int, short string, description string, dueDat
 		effort,
 		id,
 	)
-
-	return err
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
 }
 func updateHandler(conn *pgx.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +93,7 @@ func updateHandler(conn *pgx.Conn) http.HandlerFunc {
 		listHandler(conn)(w, r)
 	}
 }
- 
+
 func getTodo(conn *pgx.Conn, id int) (Todo, error) {
 	var t Todo
 
@@ -113,6 +119,10 @@ func editHandler(conn *pgx.Conn) http.HandlerFunc {
 
 		todo, err := getTodo(conn, id)
 		if err != nil {
+			if err == pgx.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
