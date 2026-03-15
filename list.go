@@ -45,7 +45,7 @@ const todoList = `
 </table>
 `
 
-var todoListTemplate = template.Must(template.New("todoList").Parse(todoList + backButton))
+var todoListTemplate = template.Must(template.New("todoList").Parse(todoList))
 
 func getTodos(conn *pgx.Conn) ([]Todo, error) {
 	rows, err := conn.Query(context.Background(),
