@@ -45,6 +45,8 @@ const todoList = `
 </table>
 `
 
+var todoListTemplate = template.Must(template.New("todoList").Parse(todoList + backButton))
+
 func getTodos(conn *pgx.Conn) ([]Todo, error) {
 	rows, err := conn.Query(context.Background(),
 		`SELECT id, short, description, due_date, cost_of_delay, effort, created_at, updated_at
@@ -78,12 +80,8 @@ func listHandler(conn *pgx.Conn) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		t, err := template.New("webpage").Parse(todoList)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if err := t.Execute(w, todos); err != nil {
+
+		if err := todoListTemplate.Execute(w, todos); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
