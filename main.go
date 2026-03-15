@@ -24,17 +24,7 @@ type Todo struct {
 	UpdatedAt   time.Time
 }
 
-const backButton = `
-{{define "backButton"}}
-<button
-  type="button"
-  fx-action="/todos/list"
-  fx-target="#output"
-  fx-swap="innerHTML">
-  Back
-</button>
-{{end}}
-`
+
 // helper to parse common form fields from a request
 func parseTodoForm(r *http.Request) (short string, description string, dueDate *time.Time, costOfDelay int16, effort string, err error) {
 	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
