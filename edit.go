@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const editForm = `
+const editFormHTML = `
 <h1>Edit Todo</h1>
 <form
   action="/todos/{{.ID}}/update"
@@ -45,7 +45,8 @@ const editForm = `
     {{template "backButton"}}
 </form>
 `
-
+var editForm = template.Must(template.New("editForm").Parse(editFormHTML + backButton))
+		
 func updateTodo(conn *pgx.Conn, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
 	tag, err := conn.Exec(
 		context.Background(),
@@ -132,13 +133,7 @@ func editHandler(conn *pgx.Conn) http.HandlerFunc {
 			return
 		}
 
-		t, err := template.New("webpage").Parse(editForm + backButton)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if err := t.Execute(w, todo); err != nil {
+		if err := editForm.Execute(w, todo); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
