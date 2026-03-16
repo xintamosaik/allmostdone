@@ -65,11 +65,20 @@ type TodoJson = {
     cost_of_delay: number;
     effort: string;
 };
+interface canSQL {
+    _name: string;
+    SQLInsert(): string;
+}
+// HELPERS:
+// HELPERS/SQL:
+const SQL = {
+    INSERT: (name: string, value: string) => `${name} = '${value}'`,
+}
 
 /**
  * Dedicated field for the todo title. Required and intentionally strict.
  */
-class TodoShort {
+class TodoShort implements canSQL {
     readonly _name = 'short';
     private _value: string;
 
@@ -96,18 +105,13 @@ class TodoShort {
         return null;
     }
 
-    valueAsString(): string {
+    value(): string {
         return this._value;
     }
 
-    valueAsSqlParam(): string {
-        return this._value;
+    SQLInsert(): string {
+        return SQL.INSERT(this._name, this.value());
     }
-
-    valueAsJson(): string {
-        return this._value;
-    }
-
     renderField(): string {
         return `
       <div>
@@ -122,15 +126,13 @@ class TodoShort {
     `.trim();
     }
 
-    renderTableCell(): string {
-        return `<td>${escapeHtml(this._value)}</td>`;
-    }
+
 }
 
 /**
  * Dedicated field for detailed description. Optional but bounded.
  */
-class TodoDescription {
+class TodoDescription implements canSQL {
     readonly _name = "description";
     private _value: string;
 
@@ -153,17 +155,11 @@ class TodoDescription {
         return null;
     }
 
-    valueAsString(): string {
+    value(): string {
         return this._value;
     }
 
-    valueAsSqlParam(): string {
-        return this._value;
-    }
 
-    valueAsJson(): string {
-        return this._value;
-    }
 
     renderField(): string {
         return `
@@ -174,15 +170,15 @@ class TodoDescription {
     `.trim();
     }
 
-    renderTableCell(): string {
-        return `<td>${escapeHtml(this._value)}</td>`;
+    SQLInsert(): string {
+        return SQL.INSERT(this._name, String(this._value));
     }
 }
 
 /**
  * Dedicated due date with a narrow accepted format for consistency with SQL and forms.
  */
-class TodoDueDate {
+class TodoDueDate implements canSQL {
     readonly _name = "due_date";
     private _value: string;
 
@@ -210,17 +206,10 @@ class TodoDueDate {
         return null;
     }
 
-    valueAsString(): string {
+    value(): string {
         return this._value;
     }
 
-    valueAsSqlParam(): string | null {
-        return this._value === "" ? null : this._value;
-    }
-
-    valueAsJson(): string | null {
-        return this._value === "" ? null : this._value;
-    }
 
     renderField(): string {
         return `
@@ -236,15 +225,16 @@ class TodoDueDate {
     `.trim();
     }
 
-    renderTableCell(): string {
-        return `<td>${escapeHtml(this._value)}</td>`;
+
+    SQLInsert(): string {
+        return SQL.INSERT(this._name, String(this._value ?? "NULL"));
     }
 }
 
 /**
  * Domain-specific integer: cost of delay for this todo, constrained to a small scale.
  */
-class TodoCostOfDelay {
+class TodoCostOfDelay implements canSQL {
     readonly _name = "cost_of_delay";
     private _value: number;
 
@@ -271,16 +261,8 @@ class TodoCostOfDelay {
         return null;
     }
 
-    valueAsString(): string {
+    value(): string {
         return String(this._value);
-    }
-
-    valueAsSqlParam(): number {
-        return this._value;
-    }
-
-    valueAsJson(): number {
-        return this._value;
     }
 
     renderField(): string {
@@ -299,10 +281,6 @@ class TodoCostOfDelay {
     `.trim();
     }
 
-    renderTableCell(): string {
-        return `<td>${this._value}</td>`;
-    }
-
     private setFromNumber(value: number): Error | null {
         if (value < -2) {
             return new Error("Cost Of Delay must be >= -2");
@@ -315,12 +293,16 @@ class TodoCostOfDelay {
         this._value = value;
         return null;
     }
+
+    SQLInsert(): string {
+        return SQL.INSERT(this._name, String(this._value));
+    }
 }
 
 /**
  * Domain-specific selection for effort sizing.
  */
-class TodoEffort {
+class TodoEffort implements canSQL {
     readonly _name = "effort";
     private _value: string;
     private _options: string[];
@@ -345,15 +327,7 @@ class TodoEffort {
         return null;
     }
 
-    valueAsString(): string {
-        return this._value;
-    }
-
-    valueAsSqlParam(): string {
-        return this._value;
-    }
-
-    valueAsJson(): string {
+    value(): string {
         return this._value;
     }
 
@@ -375,8 +349,9 @@ class TodoEffort {
     `.trim();
     }
 
-    renderTableCell(): string {
-        return `<td>${escapeHtml(this._value)}</td>`;
+
+    SQLInsert(): string {
+        return SQL.INSERT(this._name, String(this._value));
     }
 }
 /**
@@ -409,23 +384,23 @@ class Todo {
     }
 
     short(): string {
-        return this.shortField.valueAsString();
+        return this.shortField.value();
     }
 
     description(): string {
-        return this.descriptionField.valueAsString();
+        return this.descriptionField.value();
     }
 
     dueDate(): string {
-        return this.dueDateField.valueAsString();
+        return this.dueDateField.value();
     }
 
     costOfDelay(): number {
-        return Number(this.costOfDelayField.valueAsSqlParam());
+        return Number(this.costOfDelayField.value());
     }
 
     effort(): string {
-        return this.effortField.valueAsString();
+        return this.effortField.value();
     }
 
     apply(raw: TodoRawInput): TodoValidationResult {
@@ -492,11 +467,11 @@ class Todo {
         return `
       <tr>
         <td>${this._id}</td>
-        ${this.shortField.renderTableCell()}
-        ${this.descriptionField.renderTableCell()}
-        ${this.dueDateField.renderTableCell()}
-        ${this.costOfDelayField.renderTableCell()}
-        ${this.effortField.renderTableCell()}
+        <td>${this.shortField.value()}</td>
+        <td>${this.descriptionField.value()}</td>
+        <td>${this.dueDateField.value()}</td>
+        <td>${this.costOfDelayField.value()}</td>
+        <td>${this.effortField.value()}</td>
       </tr>
     `.trim();
     }
@@ -537,11 +512,11 @@ class Todo {
     toJson(): TodoJson {
         return {
             id: this._id,
-            short: this.shortField.valueAsJson(),
-            description: this.descriptionField.valueAsJson(),
-            due_date: this.dueDateField.valueAsJson(),
-            cost_of_delay: this.costOfDelayField.valueAsJson(),
-            effort: this.effortField.valueAsJson(),
+            short: this.shortField.value(),
+            description: this.descriptionField.value(),
+            due_date: this.dueDateField.value(),
+            cost_of_delay: parseInt(this.costOfDelayField.value(), 10),
+            effort: this.effortField.value(),
         };
     }
 
@@ -549,38 +524,17 @@ class Todo {
         return this.toJson();
     }
 
-    insertSql( ): { sql: string; params: SqlParam[] } {
-        const params: SqlParam[] = [
-            this.shortField.valueAsSqlParam(),
-            this.descriptionField.valueAsSqlParam(),
-            this.dueDateField.valueAsSqlParam(),
-            this.costOfDelayField.valueAsSqlParam(),
-            this.effortField.valueAsSqlParam(),
-        ];
-        const INSERT = `INSERT INTO ${this._table_name}`; 
-        const FIELDS = `(${this.shortField._name}, ${this.descriptionField._name}, ${this.dueDateField._name}, ${this.costOfDelayField._name}, ${this.effortField._name})`; 
-        const VALUES = 'VALUES ($1, $2, $3, $4, $5)';  
-        return {
-            sql: `${INSERT} ${FIELDS} ${VALUES}`,
-            params,
-        };
+    insertSql(): string {
+        const INSERT = `INSERT INTO ${this._table_name}`;
+        const FIELDS = `SET ${this.shortField.SQLInsert()}, ${this.descriptionField.SQLInsert()}, ${this.dueDateField.SQLInsert()}, ${this.costOfDelayField.SQLInsert()}, ${this.effortField.SQLInsert()}`;
+        return `${INSERT} ${FIELDS}`;
     }
 
-    updateSql(): { sql: string; params: SqlParam[] } {
-        const params: SqlParam[] = [
-            this.shortField.valueAsSqlParam(),
-            this.descriptionField.valueAsSqlParam(),
-            this.dueDateField.valueAsSqlParam(),
-            this.costOfDelayField.valueAsSqlParam(),
-            this.effortField.valueAsSqlParam(),
-        ];
+    updateSql(): string {
         const UPDATE = `UPDATE ${this._table_name}`;
-        const SET = `SET ${this.shortField._name} = $1, ${this.descriptionField._name} = $2, ${this.dueDateField._name} = $3, ${this.costOfDelayField._name} = $4, ${this.effortField._name} = $5`;
+        const SET = `SET ${this.shortField.SQLInsert()}, ${this.descriptionField.SQLInsert()}, ${this.dueDateField.SQLInsert()}, ${this.costOfDelayField.SQLInsert()}, ${this.effortField.SQLInsert()}`;
         const WHERE = `WHERE id = $6`;
-        return {
-            sql: `${UPDATE} ${SET} ${WHERE}`,
-            params: [...params, this._id],
-        };
+        return `${UPDATE} ${SET} ${WHERE}`;
     }
 
     private clone(): Todo {
@@ -611,12 +565,12 @@ function escapeHtml(value: string): string {
         .replaceAll("'", "&#39;");
 }
 
-export { 
-    Todo, 
-    TodoInitial, 
-    TodoRawInput, 
-    TodoPatchInput, 
-    TodoJson, 
-    TodoValidationError, 
-    TodoValidationResult 
+export {
+    Todo,
+    TodoInitial,
+    TodoRawInput,
+    TodoPatchInput,
+    TodoJson,
+    TodoValidationError,
+    TodoValidationResult
 };
