@@ -70,7 +70,7 @@ type TodoJson = {
  * Dedicated field for the todo title. Required and intentionally strict.
  */
 class TodoShort {
-    private _name = 'short';
+    private readonly _name = 'short';
     private _value: string;
 
     constructor(initialValue: string) {
@@ -131,7 +131,7 @@ class TodoShort {
  * Dedicated field for detailed description. Optional but bounded.
  */
 class TodoDescription {
-    private _name = "description";
+    private readonly _name = "description";
     private _value: string;
 
     constructor(initialValue: string) {
@@ -183,7 +183,7 @@ class TodoDescription {
  * Dedicated due date with a narrow accepted format for consistency with SQL and forms.
  */
 class TodoDueDate {
-    private _name = "due_date";
+    private readonly _name = "due_date";
     private _value: string;
 
     constructor(initialValue: string) {
@@ -245,7 +245,7 @@ class TodoDueDate {
  * Domain-specific integer: cost of delay for this todo, constrained to a small scale.
  */
 class TodoCostOfDelay {
-    private _name = "cost_of_delay";
+    private readonly _name = "cost_of_delay";
     private _value: number;
 
     constructor(initialValue: number) {
@@ -321,7 +321,7 @@ class TodoCostOfDelay {
  * Domain-specific selection for effort sizing.
  */
 class TodoEffort {
-    private _name = "effort";
+    private readonly _name = "effort";
     private _value: string;
     private _options: string[];
 
@@ -385,8 +385,8 @@ class TodoEffort {
  * The Todo class should enable users to create Todo items and change them safely. It should enable them to persist them without issues and to render representations and forms in an easy manner.
  */
 class Todo {
-    private _table_name = "todos";
-    private _id: number;
+    private readonly _table_name = "todos";
+    private readonly _id: number;
 
     private shortField: TodoShort;
     private descriptionField: TodoDescription;
