@@ -493,7 +493,8 @@ class Todo {
             ${escapeHtml(this.effortField.value())}
         </td>
         <td>
-            <button fx-action="" >
+             <button fx-action="/todos/${this._id}/edit" fx-target="#output" fx-swap="innerHTML">
+                Edit
             </button>
         </td>
       </tr>

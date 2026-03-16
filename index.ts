@@ -1,5 +1,5 @@
 import { Todo, type TodoInitial } from "./todo";
- 
+
 // We use fixi on the frontend to do "hypermedia" and "HATEOS"
 
 // ENDPOINTS
@@ -23,9 +23,8 @@ import { Todo, type TodoInitial } from "./todo";
 
 // we have to make sure to react to /todos/list first
 function TodoList() {
-    
     const rows = todos.map(todo => todo.renderTableRow());
-    const html = `
+     return `
         <table>
             <thead>
                 <tr>
@@ -43,12 +42,8 @@ function TodoList() {
             </tbody>
         </table>
     `;
-    return new Response(html, {
-        headers: {
-            "Content-Type": "text/html",
-        },
-    });
-} 
+     
+}
 const todos: Todo[] = [];
 const example: TodoInitial = {
     short: "Example Todo",
@@ -57,43 +52,56 @@ const example: TodoInitial = {
     cost_of_delay: 1,
     due_date: "2024-12-31",
 }
-const exampleTodo = new Todo(1, example)
-console.log(exampleTodo.values())
-todos.push(exampleTodo);
-const server = Bun.serve({
-  // `routes` requires Bun v1.2.3+
-  routes: {
-    // index.html is in /static
-    "/": Bun.file("./index.html"),
-    "/static/fixi-0.9.2.js": Bun.file("./static/fixi-0.9.2.js"),
-    "/static/style.css": Bun.file("./static/style.css"),
-    // Static routes
-    "/status": new Response("OK"),
-    // Dynamic routes
-    "/todo/:id": req => {
-      const todo = todos.filter(todo => String(todo.id()) === req.params.id)[0];
-      return todo ? Response.json(todo) : new Response("Not found", { status: 404 });
-    },
-    "/todos/list": TodoList,
-    // Per-HTTP method handlers
-    "/todos": {
-      GET: () => new Response("List posts"),
-      POST: async req => {
-        const body = await req.json() as Record<string, unknown>;
-        return Response.json({ created: true, ...body });
-      },
-    },
- 
-  
-    // Serve a file by lazily loading it into memory
-    "/favicon.ico": Bun.file("./favicon.ico"),
-  },
 
-  // (optional) fallback for unmatched routes:
-  // Required if Bun's version < 1.2.3
-  fetch(_) {
-    return new Response("Not Found", { status: 404 });
-  },
+function htmlResponse(html: string, status = 200): Response {
+    return new Response(html, {
+        status,
+        headers: {
+            "Content-Type": "text/html; charset=utf-8",
+        },
+    });
+}
+
+const exampleTodo = new Todo(1, example)
+todos.push(exampleTodo);
+
+const server = Bun.serve({
+    routes: {
+        "/": Bun.file("./index.html"),
+        "/fixi-0.9.2.js": Bun.file("./static/fixi-0.9.2.js"),
+        "/style.css": Bun.file("./static/style.css"),
+        // Static routes
+        "/status": htmlResponse("OK"),
+        // Dynamic routes
+        "/todos/:id/edit": req => {
+            const { id } = req.params;
+            // find a todo
+            const todo = todos.find(t => t.id() === Number(id));
+            if (!todo) {
+                return htmlResponse("Not Found", 404);
+            } else {
+                return htmlResponse(`Edit todo ${id}: ${todo.renderEditForm("")}`);
+            }
+        },
+        "/todos/list": htmlResponse(TodoList()),
+        // Per-HTTP method handlers
+        "/todos": {
+            GET: () => htmlResponse("List posts"),
+            POST: async req => {
+                const body = await req.json() as Record<string, unknown>;
+                return Response.json({ created: true, ...body });
+            },
+        },
+
+        // Serve a file by lazily loading it into memory
+        "/favicon.ico": Bun.file("./favicon.ico"),
+    },
+
+    // (optional) fallback for unmatched routes:
+    // Required if Bun's version < 1.2.3
+    fetch(_) {
+        return new Response("Not Found", { status: 404 });
+    },
 });
 
 console.log(`Server running at ${server.url}`);
