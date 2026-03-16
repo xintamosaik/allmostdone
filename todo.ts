@@ -70,10 +70,10 @@ type TodoJson = {
     cost_of_delay: number;
     effort: string;
 };
- 
+
 // HELPERS:
 // HELPERS/SQL:
- 
+
 /**
  * Dedicated field for the todo title. Required and intentionally strict.
  */
@@ -166,7 +166,7 @@ class TodoDescription implements TodoField {
     `.trim();
     }
 
- 
+
 }
 
 /**
@@ -220,7 +220,7 @@ class TodoDueDate implements TodoField {
     }
 
 }
- 
+
 
 /**
  * Domain-specific integer: cost of delay for this todo, constrained to a small scale.
@@ -285,7 +285,7 @@ class TodoCostOfDelay implements TodoField {
         return null;
     }
 
- 
+
 }
 
 /**
@@ -339,7 +339,7 @@ class TodoEffort implements TodoField {
     }
 
 }
- 
+
 /**
  * The Todo class. Some would call it a god-object, but I view it as a deep module (for now). I might changem my view.
  * 
@@ -553,14 +553,14 @@ class Todo {
     }
 
     private clone(): Todo {
-         return new Todo(
+        return new Todo(
             this._id, {
-                short: this.shortField.value(),
-                description: this.descriptionField.value(),
-                due_date: this.dueDateField.value(),
-                cost_of_delay: parseInt(this.costOfDelayField.value(), 10),
-                effort: this.effortField.value(),
-            });
+            short: this.shortField.value(),
+            description: this.descriptionField.value(),
+            due_date: this.dueDateField.value(),
+            cost_of_delay: parseInt(this.costOfDelayField.value(), 10),
+            effort: this.effortField.value(),
+        });
     }
 
     private pushFieldError(errors: TodoValidationError[], field: string, error: Error | null): void {
