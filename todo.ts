@@ -367,6 +367,7 @@ class TodoEffort {
  * The Todo class should enable users to create Todo items and change them safely. It should enable them to persist them without issues and to render representations and forms in an easy manner.
  */
 class Todo {
+    private _table_name = "todos";
     private _id: number;
 
     private shortField: TodoShort;
@@ -528,7 +529,7 @@ class Todo {
         };
     }
 
-    insertSql(tableName = "todos"): { sql: string; params: SqlParam[] } {
+    insertSql( ): { sql: string; params: SqlParam[] } {
         const params: SqlParam[] = [
             this.shortField.valueAsSqlParam(),
             this.descriptionField.valueAsSqlParam(),
@@ -538,12 +539,12 @@ class Todo {
         ];
 
         return {
-            sql: `INSERT INTO ${tableName} (short, description, due_date, cost_of_delay, effort) VALUES ($1, $2, $3, $4, $5)`,
+            sql: `INSERT INTO ${this._table_name} (short, description, due_date, cost_of_delay, effort) VALUES ($1, $2, $3, $4, $5)`,
             params,
         };
     }
 
-    updateSql(tableName = "todos"): { sql: string; params: SqlParam[] } {
+    updateSql(): { sql: string; params: SqlParam[] } {
         const params: SqlParam[] = [
             this.shortField.valueAsSqlParam(),
             this.descriptionField.valueAsSqlParam(),
@@ -554,7 +555,7 @@ class Todo {
 
         return {
             sql: `
-                UPDATE ${tableName} 
+                UPDATE ${this._table_name} 
                 SET short = $1, description = $2, due_date = $3, cost_of_delay = $4, effort = $5 
                 WHERE id = $6`,
             params: [...params, this._id],
