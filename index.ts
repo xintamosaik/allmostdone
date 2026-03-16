@@ -22,7 +22,33 @@ import { Todo, type TodoInitial } from "./todo";
  */
 
 // we have to make sure to react to /todos/list first
-
+function TodoList() {
+    
+    const rows = todos.map(todo => todo.renderTableRow());
+    const html = `
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Short</th>
+                    <th>Description</th>
+                    <th>Due Date</th>
+                    <th>Cost of Delay</th>
+                    <th>Effort</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows.join("\n")}
+            </tbody>
+        </table>
+    `;
+    return new Response(html, {
+        headers: {
+            "Content-Type": "text/html",
+        },
+    });
+} 
 const todos: Todo[] = [];
 const example: TodoInitial = {
     short: "Example Todo",
@@ -48,7 +74,7 @@ const server = Bun.serve({
       const todo = todos.filter(todo => String(todo.id()) === req.params.id)[0];
       return todo ? Response.json(todo) : new Response("Not found", { status: 404 });
     },
-    "/todos/list": new Response("TBA"),
+    "/todos/list": TodoList,
     // Per-HTTP method handlers
     "/todos": {
       GET: () => new Response("List posts"),

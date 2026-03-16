@@ -474,12 +474,28 @@ class Todo {
     renderTableRow(): string {
         return `
       <tr>
-        <td>${this._id}</td>
-        <td>${escapeHtml(this.shortField.value())}</td>
-        <td>${escapeHtml(this.descriptionField.value())}</td>
-        <td>${escapeHtml(this.dueDateField.value())}</td>
-        <td>${escapeHtml(String(this.costOfDelayField.value()))}</td>
-        <td>${escapeHtml(this.effortField.value())}</td>
+        <td>
+            ${this._id}
+        </td>
+        <td>
+            ${escapeHtml(this.shortField.value())}
+        </td>
+        <td>
+            ${escapeHtml(this.descriptionField.value())}
+        </td>
+        <td>
+            ${escapeHtml(this.dueDateField.value())}
+        </td>
+        <td>
+            ${escapeHtml(String(this.costOfDelayField.value()))}
+        </td>
+        <td>
+            ${escapeHtml(this.effortField.value())}
+        </td>
+        <td>
+            <button fx-action="" >
+            </button>
+        </td>
       </tr>
     `.trim();
     }
