@@ -70,20 +70,14 @@ type TodoJson = {
     cost_of_delay: number;
     effort: string;
 };
-interface canSQL {
-    _name: string;
-    SQLInsert(): string;
-}
+ 
 // HELPERS:
 // HELPERS/SQL:
-const SQL = {
-    INSERT: (name: string, value: string) => `${name} = '${value}'`,
-}
-
+ 
 /**
  * Dedicated field for the todo title. Required and intentionally strict.
  */
-class TodoShort implements TodoField, canSQL {
+class TodoShort implements TodoField {
     readonly _name = 'short';
     private _value: string;
 
@@ -114,9 +108,6 @@ class TodoShort implements TodoField, canSQL {
         return this._value;
     }
 
-    SQLInsert(): string {
-        return SQL.INSERT(this._name, this.value());
-    }
     renderField(): string {
         return `
       <div>
@@ -137,7 +128,7 @@ class TodoShort implements TodoField, canSQL {
 /**
  * Dedicated field for detailed description. Optional but bounded.
  */
-class TodoDescription implements TodoField, canSQL {
+class TodoDescription implements TodoField {
     readonly _name = "description";
     private _value: string;
 
@@ -175,15 +166,13 @@ class TodoDescription implements TodoField, canSQL {
     `.trim();
     }
 
-    SQLInsert(): string {
-        return SQL.INSERT(this._name, String(this._value));
-    }
+ 
 }
 
 /**
  * Dedicated due date with a narrow accepted format for consistency with SQL and forms.
  */
-class TodoDueDate implements TodoField, canSQL {
+class TodoDueDate implements TodoField {
     readonly _name = "due_date";
     private _value: string;
 
@@ -230,16 +219,13 @@ class TodoDueDate implements TodoField, canSQL {
     `.trim();
     }
 
-
-    SQLInsert(): string {
-        return SQL.INSERT(this._name, String(this._value ?? "NULL"));
-    }
 }
+ 
 
 /**
  * Domain-specific integer: cost of delay for this todo, constrained to a small scale.
  */
-class TodoCostOfDelay implements TodoField, canSQL {
+class TodoCostOfDelay implements TodoField {
     readonly _name = "cost_of_delay";
     private _value: number;
 
@@ -299,15 +285,13 @@ class TodoCostOfDelay implements TodoField, canSQL {
         return null;
     }
 
-    SQLInsert(): string {
-        return SQL.INSERT(this._name, String(this._value));
-    }
+ 
 }
 
 /**
  * Domain-specific selection for effort sizing.
  */
-class TodoEffort implements TodoField, canSQL {
+class TodoEffort implements TodoField {
     readonly _name = "effort";
     private _value: string;
     private _options: string[];
@@ -354,11 +338,8 @@ class TodoEffort implements TodoField, canSQL {
     `.trim();
     }
 
-
-    SQLInsert(): string {
-        return SQL.INSERT(this._name, String(this._value));
-    }
 }
+ 
 /**
  * The Todo class. Some would call it a god-object, but I view it as a deep module (for now). I might changem my view.
  * 
@@ -384,7 +365,7 @@ class Todo {
         this.effortField = new TodoEffort(initial?.effort ?? "hours");
     }
 
-    private fields(): (TodoField & canSQL)[] {
+    private fields(): TodoField[] {
         return [
             this.shortField,
             this.descriptionField,
@@ -433,13 +414,13 @@ class Todo {
      * Update all fields. Make sure to include all data and valid data or this will not update and return errors. Use patch() if you want to update only some fields and ignore missing ones.
      */
     apply(raw: TodoRawInput): TodoValidationResult {
+        const errors = [] as TodoValidationError[];
         // Validate against a clone so the original todo stays unchanged on failure.
         const trial = this.clone();
-        const errors = [] as TodoValidationError[];
-        const fields = this.fields();
+        const fields = trial.fields();
         for (const field of fields) {
             const key = field._name as keyof TodoRawInput;
-            trial.pushFieldError(errors, field._name, field.setFromRaw(raw[key]));
+            this.pushFieldError(errors, field._name, field.setFromRaw(raw[key]));
         }
 
         if (errors.length > 0) {
@@ -458,10 +439,11 @@ class Todo {
      * Updates a partial set of fields. But they need to be valid or the update fails and returns errors.
      */
     patch(raw: TodoPatchInput): TodoValidationResult {
+        const errors = [] as TodoValidationError[];
         // Only apply provided values, ignore missing ones.
         const trial = this.clone();
-        const errors = [] as TodoValidationError[];
-        const fields = this.fields();
+
+        const fields = trial.fields();
 
         for (const field of fields) {
             const key = field._name as keyof TodoPatchInput;
@@ -554,31 +536,28 @@ class Todo {
         return this.toJson();
     }
 
-    /**
-     * A valid SQL statement to update the TODO. In the future, the TODO might auto-update and this would be a private method. We would follow Yegor Bugayenkos suggestions on object design.
-     */
-    insertSql(): string {
-        const fields = this.fields().map((field) => field.SQLInsert()).join(", ");
-        const INSERT = `INSERT INTO ${this._table_name}`;
-        const FIELDS = `SET ${fields}`;
-        return `${INSERT} ${FIELDS}`;
+ 
+    keys() {
+        return this.fields().map((field) => field._name);
     }
 
-    /**
-     * A valid SQL statement to update the TODO. In the future, the TODO might auto-update and this would be a private method. We would follow Yegor Bugayenkos suggestions on object design.
-     */
-    updateSql(): string {
-        const UPDATE = `UPDATE ${this._table_name}`;
-        const SET = `SET ${this.fields().map((field) => field.SQLInsert()).join(", ")}`;
-        const WHERE = `WHERE id = $6`;
-        return `${UPDATE} ${SET} ${WHERE}`;
+    values() {
+        const object = {} as Record<string, string>;
+        for (const field of this.fields()) {
+            object[field._name] = field.value();
+        }
+        return object;
     }
 
     private clone(): Todo {
-        const fieldValues = Object.fromEntries(this.fields().map((field) => [field._name, field.value()])) as TodoInitial;
-        return new Todo(this._id, {
-            ...fieldValues
-        });
+         return new Todo(
+            this._id, {
+                short: this.shortField.value(),
+                description: this.descriptionField.value(),
+                due_date: this.dueDateField.value(),
+                cost_of_delay: parseInt(this.costOfDelayField.value(), 10),
+                effort: this.effortField.value(),
+            });
     }
 
     private pushFieldError(errors: TodoValidationError[], field: string, error: Error | null): void {
