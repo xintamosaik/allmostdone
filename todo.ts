@@ -57,21 +57,25 @@ class TodoShort {
 
     constructor(initialValue: string) {
         this._value = "";
-        this.setFromRaw(initialValue);
+        const error = this.setFromRaw(initialValue);
+        if (error) {
+            throw error;
+        }
     }
 
-    setFromRaw(raw: string): void {
+    setFromRaw(raw: string): Error | null {
         const cleaned = (raw ?? "").trim();
 
         if (cleaned.length === 0) {
-            throw new Error("Short must not be blank");
+            return new Error("Short must not be blank");
         }
 
         if (cleaned.length > 120) {
-            throw new Error("Short must be <= 120 chars");
+            return new Error("Short must be <= 120 chars");
         }
 
         this._value = cleaned;
+        return null;
     }
 
     valueAsString(): string {
@@ -114,17 +118,21 @@ class TodoDescription {
 
     constructor(initialValue: string) {
         this._value = "";
-        this.setFromRaw(initialValue);
+        const error = this.setFromRaw(initialValue);
+        if (error) {
+            throw error;
+        }
     }
 
-    setFromRaw(raw: string): void {
+    setFromRaw(raw: string): Error | null {
         const cleaned = (raw ?? "").trim();
 
         if (cleaned.length > 5000) {
-            throw new Error("Description must be <= 5000 chars");
+            return new Error("Description must be <= 5000 chars");
         }
 
         this._value = cleaned;
+        return null;
     }
 
     valueAsString(): string {
@@ -162,22 +170,26 @@ class TodoDueDate {
 
     constructor(initialValue: string) {
         this._value = "";
-        this.setFromRaw(initialValue);
+        const error = this.setFromRaw(initialValue);
+        if (error) {
+            throw error;
+        }
     }
 
-    setFromRaw(raw: string): void {
+    setFromRaw(raw: string): Error | null {
         const cleaned = (raw ?? "").trim();
 
         if (cleaned === "") {
             this._value = "";
-            return;
+            return null;
         }
 
         if (!/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) {
-            throw new Error("Due Date must be YYYY-MM-DD");
+            return new Error("Due Date must be YYYY-MM-DD");
         }
 
         this._value = cleaned;
+        return null;
     }
 
     valueAsString(): string {
@@ -220,18 +232,25 @@ class TodoCostOfDelay {
 
     constructor(initialValue: number) {
         this._value = 0;
-        this.setFromNumber(initialValue);
+        const error = this.setFromNumber(initialValue);
+        if (error) {
+            throw error;
+        }
     }
 
-    setFromRaw(raw: string): void {
+    setFromRaw(raw: string): Error | null {
         const cleaned = (raw ?? "").trim();
         const parsed = Number.parseInt(cleaned, 10);
 
         if (Number.isNaN(parsed)) {
-            throw new Error("Cost Of Delay must be an integer");
+            return new Error("Cost Of Delay must be an integer");
         }
 
-        this.setFromNumber(parsed);
+        const error = this.setFromNumber(parsed);
+        if (error) {
+            return error;
+        }
+        return null;
     }
 
     valueAsString(): string {
@@ -266,16 +285,17 @@ class TodoCostOfDelay {
         return `<td>${this._value}</td>`;
     }
 
-    private setFromNumber(value: number): void {
+    private setFromNumber(value: number): Error | null {
         if (value < -2) {
-            throw new Error("Cost Of Delay must be >= -2");
+            return new Error("Cost Of Delay must be >= -2");
         }
 
         if (value > 2) {
-            throw new Error("Cost Of Delay must be <= 2");
+            return new Error("Cost Of Delay must be <= 2");
         }
 
         this._value = value;
+        return null;
     }
 }
 
@@ -290,17 +310,21 @@ class TodoEffort {
     constructor(initialValue: string) {
         this._value = "";
         this._options = ["mins", "hours", "days", "weeks", "months"];
-        this.setFromRaw(initialValue);
+        const error = this.setFromRaw(initialValue);
+        if (error) {
+            throw error;
+        }
     }
 
-    setFromRaw(raw: string): void {
+    setFromRaw(raw: string): Error | null {
         const cleaned = (raw ?? "").trim();
 
         if (!this._options.includes(cleaned)) {
-            throw new Error(`Invalid effort: ${cleaned}`);
+            return new Error(`Invalid effort: ${cleaned}`);
         }
 
         this._value = cleaned;
+        return null;
     }
 
     valueAsString(): string {
@@ -385,13 +409,30 @@ class Todo {
         return this.effortField.valueAsString();
     }
 
-    apply(raw: TodoRawInput): void {
+    apply(raw: TodoRawInput): Error[] | null {
         // Apply all user-provided values as one transaction-like operation.
-        this.shortField.setFromRaw(raw.short ?? "");
-        this.descriptionField.setFromRaw(raw.description ?? "");
-        this.dueDateField.setFromRaw(raw.due_date ?? "");
-        this.costOfDelayField.setFromRaw(raw.cost_of_delay ?? "");
-        this.effortField.setFromRaw(raw.effort ?? "");
+        let error = null as Error | null;
+        const errors = [] as Error[];
+        error = this.shortField.setFromRaw(raw.short ?? "");
+        if (error) errors.push(error);
+       
+        error = this.descriptionField.setFromRaw(raw.description ?? "");
+        if (error) errors.push(error);
+
+        error = this.dueDateField.setFromRaw(raw.due_date ?? "");
+        if (error) errors.push(error);
+
+        error = this.costOfDelayField.setFromRaw(raw.cost_of_delay ?? "");
+        if (error) errors.push(error);
+
+        error = this.effortField.setFromRaw(raw.effort ?? "");
+        if (error) errors.push(error);
+
+        if (errors.length > 0) {
+            return errors;
+        } else {
+            return null;
+        }
     }
 
     renderTableRow(): string {
