@@ -571,4 +571,4 @@ function escapeHtml(value: string): string {
         .replaceAll("'", "&#39;");
 }
 
-export { Todo };
+export { Todo, TodoInitial, TodoRawInput, TodoJson };
