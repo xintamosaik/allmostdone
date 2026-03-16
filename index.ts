@@ -6,6 +6,13 @@ import { Todo, type TodoRawInput } from "./todo";
 function TodoList() {
     const rows = todos.map(todo => todo.renderTableRow());
     return `
+        <button
+            type="button"
+            fx-action="/todos/new"
+            fx-target="#output"
+            fx-swap="innerHTML">
+            New Todo
+        </button>
         <table>
             <thead>
                 <tr>
@@ -39,6 +46,18 @@ function EditTodo(id: string) {
     }
 
     return htmlResponse(`Edit todo ${id}: ${todo.renderEditForm()}`);
+}
+
+function CreateTodo() {
+    const newTodo = new Todo(todos.length + 1, {
+        short: "...",
+        description: "",
+        effort: 'hours',
+        cost_of_delay: 0,
+        due_date: new Date().toISOString().split("T")[0],
+    });
+    todos.push(newTodo);
+    return htmlResponse(`Create new todo: ${newTodo.renderEditForm()}`);
 }
 
 /**
@@ -115,6 +134,9 @@ const server = Bun.serve({
         "/todos/:id/update": {
             POST: async req => parseEdit(req),
         },
+
+        // CREATE
+        "/todos/new": () => CreateTodo(),
 
         // FAVICON
         "/favicon.ico": Bun.file("./favicon.ico"),

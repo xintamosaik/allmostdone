@@ -525,18 +525,25 @@ class Todo {
         const fieldsHtml = this.fields().map((field) => field.renderField()).join("\n");
 
         return `
-      <form  
+        <form  
         action="/todos/${this._id}/update"
         method="post"
         fx-action="/todos/${this._id}/update"
         fx-method="POST"
         fx-target="#output"
         fx-swap="innerHTML">
-        ${fieldsHtml}
-        <div>
-          <input type="submit" value="Save">
-        </div>
-      </form>
+            ${fieldsHtml}
+            <div>
+                <input type="submit" value="Save">
+                <button
+                    type="button"
+                    fx-action="/todos/list"
+                    fx-target="#output"
+                    fx-swap="innerHTML">
+                    Back
+                </button>
+            </div>
+        </form>
     `.trim();
     }
 
