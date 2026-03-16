@@ -1,59 +1,73 @@
-interface Field {
-    name(): string;
-    label(): string;
+/**
+ * The idea of this file is to completely represent a Todo item. 
+ * 
+ * We deliberately include persistence and representation to make this a deep module aka Ousterhouts design.
+ * 
+ * This is just an experiment to compare different styles of development. 
+ * 
+ * Anyone working on this is not allowed to change the philosophy of this module but is free to change the implementation.
+ * 
+ * What is encouraged: Add MongoDB in the same style as SQL was added. Add JSON representation for non-HTML consuming Frontends
+ * 
+ * Add other forms of persistence or representation as you see fit. 
+ * 
+ * Also encouraged: Try to be LESS generic. Re-usability is a non-concern here. We go low abstraction WITHIN the file WHILE abstracting for the consumer.
+ * 
+ * Also really encouraged: A lot of comments on methods and classes. 
+ * 
+ * NOT encouraged: Adding a "TodoList" class or similar. This file is about the Todo item, not about collections of Todos.
+ */
 
-    setFromRaw(raw: string): void;
+type SqlParam = string | number | null;
 
-    valueAsString(): string;
-    valueAsSqlParam(): string | number | null;
-    valueAsJson(): string | number | null;
+type TodoInitial = {
+    short?: string;
+    description?: string;
+    due_date?: string;
+    cost_of_delay?: number;
+    effort?: string;
+};
 
-    renderField(): string;
-    renderTableCell(): string;
-}
+type TodoRawInput = {
+    short?: string;
+    description?: string;
+    due_date?: string;
+    cost_of_delay?: string;
+    effort?: string;
+};
 
-class TextField implements Field {
+/**
+ * JSON payload kept close to the Todo model so representation rules stay in one place.
+ */
+type TodoJson = {
+    id: number;
+    short: string;
+    description: string;
+    due_date: string | null;
+    cost_of_delay: number;
+    effort: string;
+};
+
+/**
+ * Dedicated field for the todo title. Required and intentionally strict.
+ */
+class TodoShort {
     private _value: string;
-    private _name: string;
-    private _label?: string;
-    private _required: boolean;
-    private _maxLength: number;
-    private _multiline: boolean;
 
-    constructor(
-        name: string,
-        initialValue: string,
-        required: boolean,
-        maxLength: number,
-        multiline = false,
-        label?: string
-    ) {
-        this._name = name;
-        this._label = label;
-        this._required = required;
-        this._maxLength = maxLength;
-        this._multiline = multiline;
+    constructor(initialValue: string) {
         this._value = "";
         this.setFromRaw(initialValue);
-    }
-
-    name(): string {
-        return this._name;
-    }
-
-    label(): string {
-        return this._label ?? humanise(this._name);
     }
 
     setFromRaw(raw: string): void {
         const cleaned = (raw ?? "").trim();
 
-        if (this._required && cleaned.length === 0) {
-            throw new Error(`${this.label()} must not be blank`);
+        if (cleaned.length === 0) {
+            throw new Error("Short must not be blank");
         }
 
-        if (cleaned.length > this._maxLength) {
-            throw new Error(`${this.label()} must be <= ${this._maxLength} chars`);
+        if (cleaned.length > 120) {
+            throw new Error("Short must be <= 120 chars");
         }
 
         this._value = cleaned;
@@ -72,24 +86,13 @@ class TextField implements Field {
     }
 
     renderField(): string {
-        const label = `<label for="${escapeHtml(this._name)}">${escapeHtml(this.label())}</label>`;
-
-        if (this._multiline) {
-            return `
-        <div>
-          ${label}
-          <textarea id="${escapeHtml(this._name)}" name="${escapeHtml(this._name)}">${escapeHtml(this._value)}</textarea>
-        </div>
-      `.trim();
-        }
-
         return `
       <div>
-        ${label}
+        <label for="short">Short</label>
         <input
           type="text"
-          id="${escapeHtml(this._name)}"
-          name="${escapeHtml(this._name)}"
+          id="short"
+          name="short"
           value="${escapeHtml(this._value)}"
         >
       </div>
@@ -101,24 +104,62 @@ class TextField implements Field {
     }
 }
 
-class DateField implements Field {
+/**
+ * Dedicated field for detailed description. Optional but bounded.
+ */
+class TodoDescription {
     private _value: string;
-    private _name: string;
-    private _label?: string;
 
-    constructor(name: string, initialValue = "", label?: string) {
-        this._name = name;
-        this._label = label;
+    constructor(initialValue: string) {
         this._value = "";
         this.setFromRaw(initialValue);
     }
 
-    name(): string {
-        return this._name;
+    setFromRaw(raw: string): void {
+        const cleaned = (raw ?? "").trim();
+
+        if (cleaned.length > 5000) {
+            throw new Error("Description must be <= 5000 chars");
+        }
+
+        this._value = cleaned;
     }
 
-    label(): string {
-        return this._label ?? humanise(this._name);
+    valueAsString(): string {
+        return this._value;
+    }
+
+    valueAsSqlParam(): string {
+        return this._value;
+    }
+
+    valueAsJson(): string {
+        return this._value;
+    }
+
+    renderField(): string {
+        return `
+      <div>
+        <label for="description">Description</label>
+        <textarea id="description" name="description">${escapeHtml(this._value)}</textarea>
+      </div>
+    `.trim();
+    }
+
+    renderTableCell(): string {
+        return `<td>${escapeHtml(this._value)}</td>`;
+    }
+}
+
+/**
+ * Dedicated due date with a narrow accepted format for consistency with SQL and forms.
+ */
+class TodoDueDate {
+    private _value: string;
+
+    constructor(initialValue: string) {
+        this._value = "";
+        this.setFromRaw(initialValue);
     }
 
     setFromRaw(raw: string): void {
@@ -130,7 +171,7 @@ class DateField implements Field {
         }
 
         if (!/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) {
-            throw new Error(`${this.label()} must be YYYY-MM-DD`);
+            throw new Error("Due Date must be YYYY-MM-DD");
         }
 
         this._value = cleaned;
@@ -151,11 +192,11 @@ class DateField implements Field {
     renderField(): string {
         return `
       <div>
-        <label for="${escapeHtml(this._name)}">${escapeHtml(this.label())}</label>
+        <label for="due_date">Due Date</label>
         <input
           type="date"
-          id="${escapeHtml(this._name)}"
-          name="${escapeHtml(this._name)}"
+          id="due_date"
+          name="due_date"
           value="${escapeHtml(this._value)}"
         >
       </div>
@@ -167,28 +208,15 @@ class DateField implements Field {
     }
 }
 
-class IntField implements Field {
+/**
+ * Domain-specific integer: cost of delay for this todo, constrained to a small scale.
+ */
+class TodoCostOfDelay {
     private _value: number;
-    private _name: string;
-    private _label?: string;
-    private _min: number;
-    private _max: number;
 
-    constructor(name: string, initialValue: number, min: number, max: number, label?: string) {
-        this._name = name;
-        this._label = label;
-        this._min = min;
-        this._max = max;
-        this._value = initialValue;
-        this.validate(initialValue);
-    }
-
-    name(): string {
-        return this._name;
-    }
-
-    label(): string {
-        return this._label ?? humanise(this._name);
+    constructor(initialValue: number) {
+        this._value = 0;
+        this.setFromNumber(initialValue);
     }
 
     setFromRaw(raw: string): void {
@@ -196,11 +224,10 @@ class IntField implements Field {
         const parsed = Number.parseInt(cleaned, 10);
 
         if (Number.isNaN(parsed)) {
-            throw new Error(`${this.label()} must be an integer`);
+            throw new Error("Cost Of Delay must be an integer");
         }
 
-        this.validate(parsed);
-        this._value = parsed;
+        this.setFromNumber(parsed);
     }
 
     valueAsString(): string {
@@ -218,14 +245,14 @@ class IntField implements Field {
     renderField(): string {
         return `
       <div>
-        <label for="${escapeHtml(this._name)}">${escapeHtml(this.label())}</label>
+        <label for="cost_of_delay">Cost Of Delay</label>
         <input
           type="number"
-          id="${escapeHtml(this._name)}"
-          name="${escapeHtml(this._name)}"
+          id="cost_of_delay"
+          name="cost_of_delay"
           value="${this._value}"
-          min="${this._min}"
-          max="${this._max}"
+          min="-2"
+          max="2"
         >
       </div>
     `.trim();
@@ -235,44 +262,37 @@ class IntField implements Field {
         return `<td>${this._value}</td>`;
     }
 
-    private validate(value: number): void {
-        if (value < this._min) {
-            throw new Error(`${this.label()} must be >= ${this._min}`);
+    private setFromNumber(value: number): void {
+        if (value < -2) {
+            throw new Error("Cost Of Delay must be >= -2");
         }
 
-        if (value > this._max) {
-            throw new Error(`${this.label()} must be <= ${this._max}`);
+        if (value > 2) {
+            throw new Error("Cost Of Delay must be <= 2");
         }
+
+        this._value = value;
     }
 }
 
-class SelectField implements Field {
+/**
+ * Domain-specific selection for effort sizing.
+ */
+class TodoEffort {
     private _value: string;
-    private _name: string;
-    private _label?: string;
     private _options: string[];
 
-    constructor(name: string, options: string[], initialValue: string, label?: string) {
-        this._name = name;
-        this._label = label;
-        this._options = options;
+    constructor(initialValue: string) {
         this._value = "";
+        this._options = ["mins", "hours", "days", "weeks", "months"];
         this.setFromRaw(initialValue);
-    }
-
-    name(): string {
-        return this._name;
-    }
-
-    label(): string {
-        return this._label ?? humanise(this._name);
     }
 
     setFromRaw(raw: string): void {
         const cleaned = (raw ?? "").trim();
 
         if (!this._options.includes(cleaned)) {
-            throw new Error(`Invalid value for ${this.label()}: ${cleaned}`);
+            throw new Error(`Invalid effort: ${cleaned}`);
         }
 
         this._value = cleaned;
@@ -300,8 +320,8 @@ class SelectField implements Field {
 
         return `
       <div>
-        <label for="${escapeHtml(this._name)}">${escapeHtml(this.label())}</label>
-        <select id="${escapeHtml(this._name)}" name="${escapeHtml(this._name)}">
+        <label for="effort">Effort</label>
+        <select id="effort" name="effort">
           ${optionsHtml}
         </select>
       </div>
@@ -312,60 +332,28 @@ class SelectField implements Field {
         return `<td>${escapeHtml(this._value)}</td>`;
     }
 }
-
+/**
+ * The Todo class. Some would call it a god-object, but I view it as a deep module (for now). I might changem my view.
+ * 
+ * The Todo class should enable users to create Todo items and change them safely. It should enable them to persist them without issues and to render representations and forms in an easy manner.
+ */
 class Todo {
     private _id: number;
 
-    private shortField: TextField;
-    private descriptionField: TextField;
-    private dueDateField: DateField;
-    private costOfDelayField: IntField;
-    private effortField: SelectField;
+    private shortField: TodoShort;
+    private descriptionField: TodoDescription;
+    private dueDateField: TodoDueDate;
+    private costOfDelayField: TodoCostOfDelay;
+    private effortField: TodoEffort;
 
-    constructor(
-        id: number,
-        initial?: {
-            short?: string;
-            description?: string;
-            due_date?: string;
-            cost_of_delay?: number;
-            effort?: string;
-        }
-    ) {
+    constructor(id: number, initial?: TodoInitial) {
         this._id = id;
 
-        this.shortField = new TextField(
-            "short",
-            initial?.short ?? "",
-            true,
-            120
-        );
-
-        this.descriptionField = new TextField(
-            "description",
-            initial?.description ?? "",
-            false,
-            5000,
-            true
-        );
-
-        this.dueDateField = new DateField(
-            "due_date",
-            initial?.due_date ?? ""
-        );
-
-        this.costOfDelayField = new IntField(
-            "cost_of_delay",
-            initial?.cost_of_delay ?? 0,
-            -2,
-            2
-        );
-
-        this.effortField = new SelectField(
-            "effort",
-            ["mins", "hours", "days", "weeks", "months"],
-            initial?.effort ?? "hours"
-        );
+        this.shortField = new TodoShort(initial?.short ?? "");
+        this.descriptionField = new TodoDescription(initial?.description ?? "");
+        this.dueDateField = new TodoDueDate(initial?.due_date ?? "");
+        this.costOfDelayField = new TodoCostOfDelay(initial?.cost_of_delay ?? 0);
+        this.effortField = new TodoEffort(initial?.effort ?? "hours");
     }
 
     id(): number {
@@ -392,10 +380,13 @@ class Todo {
         return this.effortField.valueAsString();
     }
 
-    apply(raw: Record<string, string>): void {
-        for (const field of this.fields()) {
-            field.setFromRaw(raw[field.name()] ?? "");
-        }
+    apply(raw: TodoRawInput): void {
+        // Apply all user-provided values as one transaction-like operation.
+        this.shortField.setFromRaw(raw.short ?? "");
+        this.descriptionField.setFromRaw(raw.description ?? "");
+        this.dueDateField.setFromRaw(raw.due_date ?? "");
+        this.costOfDelayField.setFromRaw(raw.cost_of_delay ?? "");
+        this.effortField.setFromRaw(raw.effort ?? "");
     }
 
     renderTableRow(): string {
@@ -426,7 +417,13 @@ class Todo {
     }
 
     renderEditForm(action: string): string {
-        const fieldsHtml = this.fields().map((field) => field.renderField()).join("\n");
+        const fieldsHtml = [
+            this.shortField.renderField(),
+            this.descriptionField.renderField(),
+            this.dueDateField.renderField(),
+            this.costOfDelayField.renderField(),
+            this.effortField.renderField(),
+        ].join("\n");
 
         return `
       <form method="post" action="${escapeHtml(action)}">
@@ -438,7 +435,7 @@ class Todo {
     `.trim();
     }
 
-    toJson(): Record<string, string | number | null> {
+    toJson(): TodoJson {
         return {
             id: this._id,
             short: this.shortField.valueAsJson(),
@@ -449,45 +446,35 @@ class Todo {
         };
     }
 
-    insertSql(tableName = "todos"): { sql: string; params: Array<string | number | null> } {
-        const fields = this.fields();
-        const columns = fields.map((field) => field.name());
-        const placeholders = fields.map((_, index) => `$${index + 1}`);
-        const params = fields.map((field) => field.valueAsSqlParam());
+    insertSql(tableName = "todos"): { sql: string; params: SqlParam[] } {
+        const params: SqlParam[] = [
+            this.shortField.valueAsSqlParam(),
+            this.descriptionField.valueAsSqlParam(),
+            this.dueDateField.valueAsSqlParam(),
+            this.costOfDelayField.valueAsSqlParam(),
+            this.effortField.valueAsSqlParam(),
+        ];
 
         return {
-            sql: `INSERT INTO ${tableName} (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`,
+            sql: `INSERT INTO ${tableName} (short, description, due_date, cost_of_delay, effort) VALUES ($1, $2, $3, $4, $5)`,
             params,
         };
     }
 
-    updateSql(tableName = "todos"): { sql: string; params: Array<string | number | null> } {
-        const fields = this.fields();
-        const assignments = fields.map((field, index) => `${field.name()} = $${index + 1}`);
-        const params = fields.map((field) => field.valueAsSqlParam());
+    updateSql(tableName = "todos"): { sql: string; params: SqlParam[] } {
+        const params: SqlParam[] = [
+            this.shortField.valueAsSqlParam(),
+            this.descriptionField.valueAsSqlParam(),
+            this.dueDateField.valueAsSqlParam(),
+            this.costOfDelayField.valueAsSqlParam(),
+            this.effortField.valueAsSqlParam(),
+        ];
 
         return {
-            sql: `UPDATE ${tableName} SET ${assignments.join(", ")} WHERE id = $${fields.length + 1}`,
+            sql: `UPDATE ${tableName} SET short = $1, description = $2, due_date = $3, cost_of_delay = $4, effort = $5 WHERE id = $6`,
             params: [...params, this._id],
         };
     }
-
-    private fields(): Field[] {
-        return [
-            this.shortField,
-            this.descriptionField,
-            this.dueDateField,
-            this.costOfDelayField,
-            this.effortField,
-        ];
-    }
-}
-
-function humanise(name: string): string {
-    return name
-        .split("_")
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(" ");
 }
 
 function escapeHtml(value: string): string {
