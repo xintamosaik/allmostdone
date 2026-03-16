@@ -536,11 +536,14 @@ class Todo {
         return this.toJson();
     }
 
- 
+    /**
+     * You get all keys of the todo as an array. This is useful for generic handling of fields, for example in forms or similar use cases. It also abstracts away the internal structure of the Todo class so the consumer doesn't need to know about the specific field classes we use internally.
+     */
     keys() {
         return this.fields().map((field) => field._name);
     }
 
+    /** Gives you a very plain object for use in query building (e.g SQL) */
     values() {
         const object = {} as Record<string, string>;
         for (const field of this.fields()) {
