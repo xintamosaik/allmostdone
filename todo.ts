@@ -394,30 +394,44 @@ class Todo {
         ];
     }
 
-    id(): number {
-        return this._id;
-    }
-
+    /**
+     * A short title for the todo
+     */
     short(): string {
         return this.shortField.value();
     }
 
+    /**
+     * A detailed description of the todo. Might be empty
+     */
     description(): string {
         return this.descriptionField.value();
     }
 
+    /**
+     * The date the task ideally should be done. Might be empty
+     */
     dueDate(): string {
         return this.dueDateField.value();
     }
 
+    /**
+     * A raw estimate how much we loose if we postpone this task, on a scale from -2 (allmost nothing) to 2 (a ton). Required.
+     */
     costOfDelay(): number {
         return Number(this.costOfDelayField.value());
     }
 
+    /**
+     * A raw estimate of effort in time. Allowed are "mins", "hours", "days", "weeks" and "months". Required.
+     */
     effort(): string {
         return this.effortField.value();
     }
 
+    /**
+     * Update all fields. Make sure to include all data and valid data or this will not update and return errors. Use patch() if you want to update only some fields and ignore missing ones.
+     */
     apply(raw: TodoRawInput): TodoValidationResult {
         // Validate against a clone so the original todo stays unchanged on failure.
         const trial = this.clone();
@@ -440,6 +454,9 @@ class Todo {
         return { ok: true, errors: [] };
     }
 
+    /**
+     * Updates a partial set of fields. But they need to be valid or the update fails and returns errors.
+     */
     patch(raw: TodoPatchInput): TodoValidationResult {
         // Only apply provided values, ignore missing ones.
         const trial = this.clone();
@@ -467,6 +484,9 @@ class Todo {
         return { ok: true, errors: [] };
     }
 
+    /**
+     * You get a table row for a quick overview
+     */
     renderTableRow(): string {
         return `
       <tr>
@@ -480,6 +500,9 @@ class Todo {
     `.trim();
     }
 
+    /**
+     * You get a card with all details for popups on small devices or similar use cases.
+     */
     renderCard(): string {
         return `
       <article class="todo-card">
@@ -494,6 +517,9 @@ class Todo {
     `.trim();
     }
 
+    /**
+     * This gives you a form where you can edit all fields. You can use it for both creating and editing. Just make sure to provide the right action URL. The form is unstyled and basic on purpose, but it includes all necessary attributes for a good user experience like labels, input types and max lengths.
+     */
     renderEditForm(action: string): string {
         const fieldsHtml = this.fields().map((field) => field.renderField()).join("\n");
 
@@ -507,6 +533,9 @@ class Todo {
     `.trim();
     }
 
+    /**
+     * A custom JSON representation close to the domain model. This is what we use for persistence and also for API responses. We keep it close to the model so we have a single source of truth for how the data looks like in JSON. If we wanted to add a different representation for a specific frontend, we could add another method like toApiJson() or similar.
+     */
     toJson(): TodoJson {
         return {
             id: this._id,
@@ -518,10 +547,16 @@ class Todo {
         };
     }
 
+    /**
+     * An automatic converson to JSON from the Object itself. I have no idea for what it's useful..
+     */
     toJSON(): TodoJson {
         return this.toJson();
     }
 
+    /**
+     * A valid SQL statement to update the TODO. In the future, the TODO might auto-update and this would be a private method. We would follow Yegor Bugayenkos suggestions on object design.
+     */
     insertSql(): string {
         const fields = this.fields().map((field) => field.SQLInsert()).join(", ");
         const INSERT = `INSERT INTO ${this._table_name}`;
@@ -529,6 +564,9 @@ class Todo {
         return `${INSERT} ${FIELDS}`;
     }
 
+    /**
+     * A valid SQL statement to update the TODO. In the future, the TODO might auto-update and this would be a private method. We would follow Yegor Bugayenkos suggestions on object design.
+     */
     updateSql(): string {
         const UPDATE = `UPDATE ${this._table_name}`;
         const SET = `SET ${this.fields().map((field) => field.SQLInsert()).join(", ")}`;
