@@ -29,11 +29,11 @@ type TodoInitial = {
 };
 
 type TodoRawInput = {
-    short?: string;
-    description?: string;
-    due_date?: string;
-    cost_of_delay?: string;
-    effort?: string;
+    short: string;
+    description: string;
+    due_date: string;
+    cost_of_delay: string;
+    effort: string;
 };
 
 /**
@@ -427,6 +427,42 @@ class Todo {
 
         error = this.effortField.setFromRaw(raw.effort ?? "");
         if (error) errors.push(error);
+
+        if (errors.length > 0) {
+            return errors;
+        } else {
+            return null;
+        }
+    }
+
+    patch(raw: Partial<TodoRawInput>): Error[] | null {
+        // Only apply provided values, ignore missing ones.
+        let error = null as Error | null;
+        const errors = [] as Error[];
+        if (raw.short !== undefined) {
+            error = this.shortField.setFromRaw(raw.short);
+            if (error) errors.push(error);
+        }
+
+        if (raw.description !== undefined) {
+            error = this.descriptionField.setFromRaw(raw.description);
+            if (error) errors.push(error);
+        }
+
+        if (raw.due_date !== undefined) {
+            error = this.dueDateField.setFromRaw(raw.due_date);
+            if (error) errors.push(error);
+        }
+
+        if (raw.cost_of_delay !== undefined) {
+            error = this.costOfDelayField.setFromRaw(raw.cost_of_delay);
+            if (error) errors.push(error);
+        }
+
+        if (raw.effort !== undefined) {
+            error = this.effortField.setFromRaw(raw.effort);
+            if (error) errors.push(error);
+        }
 
         if (errors.length > 0) {
             return errors;
