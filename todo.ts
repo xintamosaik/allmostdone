@@ -17,37 +17,36 @@
  * 
  * NOT encouraged: Adding a "TodoList" class or similar. This file is about the Todo item, not about collections of Todos.
  */
-interface TodoField {
-    _name: string;
-    value(): string;
-    setFromRaw(raw: string): Error | null;
-    renderField(): string;
 
-}
-
-type TodoInitial = {
-    short?: string;
-    description?: string;
-    due_date?: string;
-    cost_of_delay?: number;
-    effort?: string;
-};
+type Short = string;
+type Description = string;
+type DueDate = string
+type CostOfDelay = -2 | -1 | 0 | 1 | 2
+type Effort = 'mins' | 'hours' | 'days' | 'weeks' | 'months';
 
 type TodoRawInput = {
-    short: string;
-    description: string;
-    due_date: string;
-    cost_of_delay: string;
-    effort: string;
+    short: Short;
+    description: Description;
+    due_date: DueDate;
+    cost_of_delay: CostOfDelay;
+    effort: Effort;
 };
+type TodoOptionals = {
+    short?: Short;
+    description?: Description;
+    due_date?: DueDate;
+    cost_of_delay?: CostOfDelay;
+    effort?: Effort;
+};
+type TodoPatchInput = TodoOptionals;
+type TodoInitial = TodoOptionals;
 
-type TodoPatchInput = {
-    short?: string;
-    description?: string;
-    due_date?: string;
-    cost_of_delay?: string;
-    effort?: string;
-};
+interface TodoField {
+    _name: string;
+    value(): Short | Description | DueDate | CostOfDelay | Effort;
+    setFromRaw(raw: Short | Description | DueDate | CostOfDelay | Effort): Error | null;
+    renderField(): string;
+}
 
 type TodoValidationError = {
     field: string;
@@ -64,11 +63,11 @@ type TodoValidationResult = {
  */
 type TodoJson = {
     id: number;
-    short: string;
-    description: string;
-    due_date: string | null;
-    cost_of_delay: number;
-    effort: string;
+    short: Short;
+    description: Description;
+    due_date: DueDate | null;
+    cost_of_delay: CostOfDelay;
+    effort: Effort;
 };
 
 // HELPERS:
@@ -79,9 +78,9 @@ type TodoJson = {
  */
 class TodoShort implements TodoField {
     readonly _name = 'short';
-    private _value: string;
+    private _value: Short;
 
-    constructor(initialValue: string) {
+    constructor(initialValue: Short) {
         this._value = "";
         const error = this.setFromRaw(initialValue);
         if (error) {
@@ -89,7 +88,7 @@ class TodoShort implements TodoField {
         }
     }
 
-    setFromRaw(raw: string): Error | null {
+    setFromRaw(raw: Short): Error | null {
         const cleaned = (raw ?? "").trim();
 
         if (cleaned.length === 0) {
@@ -104,7 +103,7 @@ class TodoShort implements TodoField {
         return null;
     }
 
-    value(): string {
+    value(): Short {
         return this._value;
     }
 
@@ -130,9 +129,9 @@ class TodoShort implements TodoField {
  */
 class TodoDescription implements TodoField {
     readonly _name = "description";
-    private _value: string;
+    private _value: Description;
 
-    constructor(initialValue: string) {
+    constructor(initialValue: Description) {
         this._value = "";
         const error = this.setFromRaw(initialValue);
         if (error) {
@@ -140,7 +139,7 @@ class TodoDescription implements TodoField {
         }
     }
 
-    setFromRaw(raw: string): Error | null {
+    setFromRaw(raw: Description): Error | null {
         const cleaned = (raw ?? "").trim();
 
         if (cleaned.length > 5000) {
@@ -151,7 +150,7 @@ class TodoDescription implements TodoField {
         return null;
     }
 
-    value(): string {
+    value(): Description {
         return this._value;
     }
 
@@ -174,9 +173,9 @@ class TodoDescription implements TodoField {
  */
 class TodoDueDate implements TodoField {
     readonly _name = "due_date";
-    private _value: string;
+    private _value: DueDate;
 
-    constructor(initialValue: string) {
+    constructor(initialValue: DueDate) {
         this._value = "";
         const error = this.setFromRaw(initialValue);
         if (error) {
@@ -184,7 +183,7 @@ class TodoDueDate implements TodoField {
         }
     }
 
-    setFromRaw(raw: string): Error | null {
+    setFromRaw(raw: DueDate): Error | null {
         const cleaned = (raw ?? "").trim();
 
         if (cleaned === "") {
@@ -200,7 +199,7 @@ class TodoDueDate implements TodoField {
         return null;
     }
 
-    value(): string {
+    value(): DueDate {
         return this._value;
     }
 
@@ -227,9 +226,9 @@ class TodoDueDate implements TodoField {
  */
 class TodoCostOfDelay implements TodoField {
     readonly _name = "cost_of_delay";
-    private _value: number;
+    private _value: CostOfDelay;
 
-    constructor(initialValue: number) {
+    constructor(initialValue: CostOfDelay) {
         this._value = 0;
         const error = this.setFromNumber(initialValue);
         if (error) {
@@ -237,23 +236,22 @@ class TodoCostOfDelay implements TodoField {
         }
     }
 
-    setFromRaw(raw: string): Error | null {
-        const cleaned = (raw ?? "").trim();
-        const parsed = Number.parseInt(cleaned, 10);
+    setFromRaw(raw: CostOfDelay): Error | null {
 
-        if (Number.isNaN(parsed)) {
+
+        if (Number.isNaN(raw)) {
             return new Error("Cost Of Delay must be an integer");
         }
 
-        const error = this.setFromNumber(parsed);
+        const error = this.setFromNumber(raw);
         if (error) {
             return error;
         }
         return null;
     }
 
-    value(): string {
-        return String(this._value);
+    value(): CostOfDelay {
+        return this._value;
     }
 
     renderField(): string {
@@ -272,7 +270,7 @@ class TodoCostOfDelay implements TodoField {
     `.trim();
     }
 
-    private setFromNumber(value: number): Error | null {
+    private setFromNumber(value: CostOfDelay): Error | null {
         if (value < -2) {
             return new Error("Cost Of Delay must be >= -2");
         }
@@ -293,11 +291,11 @@ class TodoCostOfDelay implements TodoField {
  */
 class TodoEffort implements TodoField {
     readonly _name = "effort";
-    private _value: string;
-    private _options: string[];
+    private _value: Effort;
+    private _options: Effort[];
 
-    constructor(initialValue: string) {
-        this._value = "";
+    constructor(initialValue: Effort) {
+        this._value = "hours";
         this._options = ["mins", "hours", "days", "weeks", "months"];
         const error = this.setFromRaw(initialValue);
         if (error) {
@@ -305,18 +303,16 @@ class TodoEffort implements TodoField {
         }
     }
 
-    setFromRaw(raw: string): Error | null {
-        const cleaned = (raw ?? "").trim();
-
-        if (!this._options.includes(cleaned)) {
-            return new Error(`Invalid effort: ${cleaned}`);
+    setFromRaw(raw: Effort): Error | null {
+        if (!this._options.includes(raw)) {
+            return new Error(`Invalid effort: ${raw}`);
         }
 
-        this._value = cleaned;
+        this._value = raw;
         return null;
     }
 
-    value(): string {
+    value(): Effort {
         return this._value;
     }
 
@@ -448,7 +444,7 @@ class Todo {
 
         for (const field of fields) {
             const key = field._name as keyof TodoPatchInput;
-            
+
             if (raw[key] !== undefined) {
                 const error = field.setFromRaw(raw[key]);
                 trial.pushFieldError(errors, field._name, error);
@@ -479,7 +475,7 @@ class Todo {
         <td>${escapeHtml(this.shortField.value())}</td>
         <td>${escapeHtml(this.descriptionField.value())}</td>
         <td>${escapeHtml(this.dueDateField.value())}</td>
-        <td>${escapeHtml(this.costOfDelayField.value())}</td>
+        <td>${escapeHtml(String(this.costOfDelayField.value()))}</td>
         <td>${escapeHtml(this.effortField.value())}</td>
       </tr>
     `.trim();
@@ -527,7 +523,7 @@ class Todo {
             short: this.shortField.value(),
             description: this.descriptionField.value(),
             due_date: this.dueDateField.value() || null,
-            cost_of_delay: parseInt(this.costOfDelayField.value(), 10),
+            cost_of_delay: this.costOfDelayField.value(),
             effort: this.effortField.value(),
         };
     }
@@ -548,20 +544,23 @@ class Todo {
 
     /** Gives you a very plain object for use in query building (e.g SQL) */
     values(): Record<string, string> {
-        const object = {} as Record<string, string>;
-        for (const field of this.fields()) {
-            object[field._name] = field.value();
-        }
+        const object = {
+            short: this.shortField.value(),
+            description: this.descriptionField.value(),
+            due_date: this.dueDateField.value(),
+            cost_of_delay: String(this.costOfDelayField.value()),
+            effort: this.effortField.value(),
+        } as Record<string, string>;
         return object;
     }
-
+ 
     private clone(): Todo {
         return new Todo(
             this._id, {
             short: this.shortField.value(),
             description: this.descriptionField.value(),
             due_date: this.dueDateField.value(),
-            cost_of_delay: parseInt(this.costOfDelayField.value(), 10),
+            cost_of_delay: this.costOfDelayField.value(),
             effort: this.effortField.value(),
         });
     }
@@ -586,10 +585,10 @@ function escapeHtml(value: string): string {
 
 export {
     Todo,
-    TodoInitial,
-    TodoRawInput,
-    TodoPatchInput,
-    TodoJson,
-    TodoValidationError,
-    TodoValidationResult
+    type TodoInitial,
+    type TodoJson,
+    type TodoRawInput,
+    type TodoPatchInput,
+    type TodoValidationResult,
+    type TodoValidationError,    
 };
