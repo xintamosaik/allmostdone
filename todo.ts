@@ -611,4 +611,12 @@ function escapeHtml(value: string): string {
         .replaceAll("'", "&#39;");
 }
 
-export { Todo, TodoInitial, TodoRawInput, TodoPatchInput, TodoJson, TodoValidationError, TodoValidationResult };
+export { 
+    Todo, 
+    TodoInitial, 
+    TodoRawInput, 
+    TodoPatchInput, 
+    TodoJson, 
+    TodoValidationError, 
+    TodoValidationResult 
+};
