@@ -52,6 +52,7 @@ type TodoJson = {
  * Dedicated field for the todo title. Required and intentionally strict.
  */
 class TodoShort {
+    private _name = 'short';
     private _value: string;
 
     constructor(initialValue: string) {
@@ -88,11 +89,11 @@ class TodoShort {
     renderField(): string {
         return `
       <div>
-        <label for="short">Short</label>
+        <label for="${this._name}">Short</label>
         <input
           type="text"
-          id="short"
-          name="short"
+          id="${this._name}"
+          name="${this._name}"
           value="${escapeHtml(this._value)}"
         >
       </div>
@@ -108,6 +109,7 @@ class TodoShort {
  * Dedicated field for detailed description. Optional but bounded.
  */
 class TodoDescription {
+    private _name = "description";
     private _value: string;
 
     constructor(initialValue: string) {
@@ -140,8 +142,8 @@ class TodoDescription {
     renderField(): string {
         return `
       <div>
-        <label for="description">Description</label>
-        <textarea id="description" name="description">${escapeHtml(this._value)}</textarea>
+        <label for="${this._name}">Description</label>
+        <textarea id="${this._name}" name="${this._name}">${escapeHtml(this._value)}</textarea>
       </div>
     `.trim();
     }
@@ -155,6 +157,7 @@ class TodoDescription {
  * Dedicated due date with a narrow accepted format for consistency with SQL and forms.
  */
 class TodoDueDate {
+    private _name = "due_date";
     private _value: string;
 
     constructor(initialValue: string) {
@@ -192,11 +195,11 @@ class TodoDueDate {
     renderField(): string {
         return `
       <div>
-        <label for="due_date">Due Date</label>
+        <label for="${this._name}">Due Date</label>
         <input
           type="date"
-          id="due_date"
-          name="due_date"
+          id="${this._name}"
+          name="${this._name}"
           value="${escapeHtml(this._value)}"
         >
       </div>
@@ -212,6 +215,7 @@ class TodoDueDate {
  * Domain-specific integer: cost of delay for this todo, constrained to a small scale.
  */
 class TodoCostOfDelay {
+    private _name = "cost_of_delay";
     private _value: number;
 
     constructor(initialValue: number) {
@@ -245,11 +249,11 @@ class TodoCostOfDelay {
     renderField(): string {
         return `
       <div>
-        <label for="cost_of_delay">Cost Of Delay</label>
+        <label for="${this._name}">Cost Of Delay</label>
         <input
           type="number"
-          id="cost_of_delay"
-          name="cost_of_delay"
+          id="${this._name}"
+          name="${this._name}"
           value="${this._value}"
           min="-2"
           max="2"
@@ -279,6 +283,7 @@ class TodoCostOfDelay {
  * Domain-specific selection for effort sizing.
  */
 class TodoEffort {
+    private _name = "effort";
     private _value: string;
     private _options: string[];
 
@@ -320,8 +325,8 @@ class TodoEffort {
 
         return `
       <div>
-        <label for="effort">Effort</label>
-        <select id="effort" name="effort">
+        <label for="${this._name}">Effort</label>
+        <select id="${this._name}" name="${this._name}">
           ${optionsHtml}
         </select>
       </div>
@@ -471,7 +476,10 @@ class Todo {
         ];
 
         return {
-            sql: `UPDATE ${tableName} SET short = $1, description = $2, due_date = $3, cost_of_delay = $4, effort = $5 WHERE id = $6`,
+            sql: `
+                UPDATE ${tableName} 
+                SET short = $1, description = $2, due_date = $3, cost_of_delay = $4, effort = $5 
+                WHERE id = $6`,
             params: [...params, this._id],
         };
     }
