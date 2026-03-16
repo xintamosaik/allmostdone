@@ -17,8 +17,13 @@
  * 
  * NOT encouraged: Adding a "TodoList" class or similar. This file is about the Todo item, not about collections of Todos.
  */
+interface TodoField {
+    _name: string;
+    value(): string;
+    setFromRaw(raw: string): Error | null;
+    renderField(): string;
 
-type SqlParam = string | number | null;
+}
 
 type TodoInitial = {
     short?: string;
@@ -78,7 +83,7 @@ const SQL = {
 /**
  * Dedicated field for the todo title. Required and intentionally strict.
  */
-class TodoShort implements canSQL {
+class TodoShort implements TodoField, canSQL {
     readonly _name = 'short';
     private _value: string;
 
@@ -132,7 +137,7 @@ class TodoShort implements canSQL {
 /**
  * Dedicated field for detailed description. Optional but bounded.
  */
-class TodoDescription implements canSQL {
+class TodoDescription implements TodoField, canSQL {
     readonly _name = "description";
     private _value: string;
 
@@ -178,7 +183,7 @@ class TodoDescription implements canSQL {
 /**
  * Dedicated due date with a narrow accepted format for consistency with SQL and forms.
  */
-class TodoDueDate implements canSQL {
+class TodoDueDate implements TodoField, canSQL {
     readonly _name = "due_date";
     private _value: string;
 
@@ -234,7 +239,7 @@ class TodoDueDate implements canSQL {
 /**
  * Domain-specific integer: cost of delay for this todo, constrained to a small scale.
  */
-class TodoCostOfDelay implements canSQL {
+class TodoCostOfDelay implements TodoField, canSQL {
     readonly _name = "cost_of_delay";
     private _value: number;
 
@@ -302,7 +307,7 @@ class TodoCostOfDelay implements canSQL {
 /**
  * Domain-specific selection for effort sizing.
  */
-class TodoEffort implements canSQL {
+class TodoEffort implements TodoField, canSQL {
     readonly _name = "effort";
     private _value: string;
     private _options: string[];
