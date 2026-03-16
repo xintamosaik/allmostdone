@@ -12,6 +12,8 @@ console.log(todo.renderTableRow());
 console.log(todo.renderCard());
 console.log(todo.renderEditForm("/todos/1/update"));
 console.log(todo.toJson());
+console.log(todo.keys());
+console.log(todo.values());
  
 
 todo.apply({
