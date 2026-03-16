@@ -70,7 +70,7 @@ type TodoJson = {
  * Dedicated field for the todo title. Required and intentionally strict.
  */
 class TodoShort {
-    private readonly _name = 'short';
+    readonly _name = 'short';
     private _value: string;
 
     constructor(initialValue: string) {
@@ -131,7 +131,7 @@ class TodoShort {
  * Dedicated field for detailed description. Optional but bounded.
  */
 class TodoDescription {
-    private readonly _name = "description";
+    readonly _name = "description";
     private _value: string;
 
     constructor(initialValue: string) {
@@ -183,7 +183,7 @@ class TodoDescription {
  * Dedicated due date with a narrow accepted format for consistency with SQL and forms.
  */
 class TodoDueDate {
-    private readonly _name = "due_date";
+    readonly _name = "due_date";
     private _value: string;
 
     constructor(initialValue: string) {
@@ -245,7 +245,7 @@ class TodoDueDate {
  * Domain-specific integer: cost of delay for this todo, constrained to a small scale.
  */
 class TodoCostOfDelay {
-    private readonly _name = "cost_of_delay";
+    readonly _name = "cost_of_delay";
     private _value: number;
 
     constructor(initialValue: number) {
@@ -321,7 +321,7 @@ class TodoCostOfDelay {
  * Domain-specific selection for effort sizing.
  */
 class TodoEffort {
-    private readonly _name = "effort";
+    readonly _name = "effort";
     private _value: string;
     private _options: string[];
 
@@ -557,9 +557,11 @@ class Todo {
             this.costOfDelayField.valueAsSqlParam(),
             this.effortField.valueAsSqlParam(),
         ];
-
+        const INSERT = `INSERT INTO ${this._table_name}`; 
+        const FIELDS = `(${this.shortField._name}, ${this.descriptionField._name}, ${this.dueDateField._name}, ${this.costOfDelayField._name}, ${this.effortField._name})`; 
+        const VALUES = 'VALUES ($1, $2, $3, $4, $5)';  
         return {
-            sql: `INSERT INTO ${this._table_name} (short, description, due_date, cost_of_delay, effort) VALUES ($1, $2, $3, $4, $5)`,
+            sql: `${INSERT} ${FIELDS} ${VALUES}`,
             params,
         };
     }
@@ -572,12 +574,11 @@ class Todo {
             this.costOfDelayField.valueAsSqlParam(),
             this.effortField.valueAsSqlParam(),
         ];
-
+        const UPDATE = `UPDATE ${this._table_name}`;
+        const SET = `SET ${this.shortField._name} = $1, ${this.descriptionField._name} = $2, ${this.dueDateField._name} = $3, ${this.costOfDelayField._name} = $4, ${this.effortField._name} = $5`;
+        const WHERE = `WHERE id = $6`;
         return {
-            sql: `
-                UPDATE ${this._table_name} 
-                SET short = $1, description = $2, due_date = $3, cost_of_delay = $4, effort = $5 
-                WHERE id = $6`,
+            sql: `${UPDATE} ${SET} ${WHERE}`,
             params: [...params, this._id],
         };
     }
