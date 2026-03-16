@@ -346,7 +346,7 @@ class TodoEffort implements TodoField {
  * The Todo class should enable users to create Todo items and change them safely. It should enable them to persist them without issues and to render representations and forms in an easy manner.
  */
 class Todo {
-    private readonly _table_name = "todos";
+    readonly _table_name = "todos";
     private readonly _id: number;
 
     private shortField: TodoShort;
@@ -473,11 +473,11 @@ class Todo {
         return `
       <tr>
         <td>${this._id}</td>
-        <td>${this.shortField.value()}</td>
-        <td>${this.descriptionField.value()}</td>
-        <td>${this.dueDateField.value()}</td>
-        <td>${this.costOfDelayField.value()}</td>
-        <td>${this.effortField.value()}</td>
+        <td>${escapeHtml(this.shortField.value())}</td>
+        <td>${escapeHtml(this.descriptionField.value())}</td>
+        <td>${escapeHtml(this.dueDateField.value())}</td>
+        <td>${escapeHtml(this.costOfDelayField.value())}</td>
+        <td>${escapeHtml(this.effortField.value())}</td>
       </tr>
     `.trim();
     }
