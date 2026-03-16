@@ -12,7 +12,7 @@ console.log(todo.renderTableRow());
 console.log(todo.renderCard());
 console.log(todo.renderEditForm("/todos/1/update"));
 console.log(todo.toJson());
-console.log(todo.updateSql("todos"));
+console.log(todo.updateSql());
 
 todo.apply({
     short: "Buy bread",

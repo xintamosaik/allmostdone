@@ -36,6 +36,24 @@ type TodoRawInput = {
     effort: string;
 };
 
+type TodoPatchInput = {
+    short?: string;
+    description?: string;
+    due_date?: string;
+    cost_of_delay?: string;
+    effort?: string;
+};
+
+type TodoValidationError = {
+    field: string;
+    message: string;
+};
+
+type TodoValidationResult = {
+    ok: boolean;
+    errors: TodoValidationError[];
+};
+
 /**
  * JSON payload kept close to the Todo model so representation rules stay in one place.
  */
@@ -410,66 +428,64 @@ class Todo {
         return this.effortField.valueAsString();
     }
 
-    apply(raw: TodoRawInput): Error[] | null {
-        // Apply all user-provided values as one transaction-like operation.
-        let error = null as Error | null;
-        const errors = [] as Error[];
-        error = this.shortField.setFromRaw(raw.short ?? "");
-        if (error) errors.push(error);
-       
-        error = this.descriptionField.setFromRaw(raw.description ?? "");
-        if (error) errors.push(error);
+    apply(raw: TodoRawInput): TodoValidationResult {
+        // Validate against a clone so the original todo stays unchanged on failure.
+        const trial = this.clone();
+        const errors = [] as TodoValidationError[];
 
-        error = this.dueDateField.setFromRaw(raw.due_date ?? "");
-        if (error) errors.push(error);
-
-        error = this.costOfDelayField.setFromRaw(raw.cost_of_delay ?? "");
-        if (error) errors.push(error);
-
-        error = this.effortField.setFromRaw(raw.effort ?? "");
-        if (error) errors.push(error);
+        this.pushFieldError(errors, "short", trial.shortField.setFromRaw(raw.short));
+        this.pushFieldError(errors, "description", trial.descriptionField.setFromRaw(raw.description));
+        this.pushFieldError(errors, "due_date", trial.dueDateField.setFromRaw(raw.due_date));
+        this.pushFieldError(errors, "cost_of_delay", trial.costOfDelayField.setFromRaw(raw.cost_of_delay));
+        this.pushFieldError(errors, "effort", trial.effortField.setFromRaw(raw.effort));
 
         if (errors.length > 0) {
-            return errors;
-        } else {
-            return null;
+            return { ok: false, errors };
         }
+
+        this.shortField = trial.shortField;
+        this.descriptionField = trial.descriptionField;
+        this.dueDateField = trial.dueDateField;
+        this.costOfDelayField = trial.costOfDelayField;
+        this.effortField = trial.effortField;
+        return { ok: true, errors: [] };
     }
 
-    patch(raw: Partial<TodoRawInput>): Error[] | null {
+    patch(raw: TodoPatchInput): TodoValidationResult {
         // Only apply provided values, ignore missing ones.
-        let error = null as Error | null;
-        const errors = [] as Error[];
+        const trial = this.clone();
+        const errors = [] as TodoValidationError[];
+
         if (raw.short !== undefined) {
-            error = this.shortField.setFromRaw(raw.short);
-            if (error) errors.push(error);
+            this.pushFieldError(errors, "short", trial.shortField.setFromRaw(raw.short));
         }
 
         if (raw.description !== undefined) {
-            error = this.descriptionField.setFromRaw(raw.description);
-            if (error) errors.push(error);
+            this.pushFieldError(errors, "description", trial.descriptionField.setFromRaw(raw.description));
         }
 
         if (raw.due_date !== undefined) {
-            error = this.dueDateField.setFromRaw(raw.due_date);
-            if (error) errors.push(error);
+            this.pushFieldError(errors, "due_date", trial.dueDateField.setFromRaw(raw.due_date));
         }
 
         if (raw.cost_of_delay !== undefined) {
-            error = this.costOfDelayField.setFromRaw(raw.cost_of_delay);
-            if (error) errors.push(error);
+            this.pushFieldError(errors, "cost_of_delay", trial.costOfDelayField.setFromRaw(raw.cost_of_delay));
         }
 
         if (raw.effort !== undefined) {
-            error = this.effortField.setFromRaw(raw.effort);
-            if (error) errors.push(error);
+            this.pushFieldError(errors, "effort", trial.effortField.setFromRaw(raw.effort));
         }
 
         if (errors.length > 0) {
-            return errors;
-        } else {
-            return null;
+            return { ok: false, errors };
         }
+
+        this.shortField = trial.shortField;
+        this.descriptionField = trial.descriptionField;
+        this.dueDateField = trial.dueDateField;
+        this.costOfDelayField = trial.costOfDelayField;
+        this.effortField = trial.effortField;
+        return { ok: true, errors: [] };
     }
 
     renderTableRow(): string {
@@ -529,6 +545,10 @@ class Todo {
         };
     }
 
+    toJSON(): TodoJson {
+        return this.toJson();
+    }
+
     insertSql( ): { sql: string; params: SqlParam[] } {
         const params: SqlParam[] = [
             this.shortField.valueAsSqlParam(),
@@ -561,6 +581,24 @@ class Todo {
             params: [...params, this._id],
         };
     }
+
+    private clone(): Todo {
+        return new Todo(this._id, {
+            short: this.short(),
+            description: this.description(),
+            due_date: this.dueDate(),
+            cost_of_delay: this.costOfDelay(),
+            effort: this.effort(),
+        });
+    }
+
+    private pushFieldError(errors: TodoValidationError[], field: string, error: Error | null): void {
+        if (!error) {
+            return;
+        }
+
+        errors.push({ field, message: error.message });
+    }
 }
 
 function escapeHtml(value: string): string {
@@ -572,4 +610,4 @@ function escapeHtml(value: string): string {
         .replaceAll("'", "&#39;");
 }
 
-export { Todo, TodoInitial, TodoRawInput, TodoJson };
+export { Todo, TodoInitial, TodoRawInput, TodoPatchInput, TodoJson, TodoValidationError, TodoValidationResult };
