@@ -412,22 +412,21 @@ class Todo {
         // Validate against a clone so the original todo stays unchanged on failure.
         const trial = this.clone();
         const errors = [] as TodoValidationError[];
-
-        this.pushFieldError(errors, "short", trial.shortField.setFromRaw(raw.short));
-        this.pushFieldError(errors, "description", trial.descriptionField.setFromRaw(raw.description));
-        this.pushFieldError(errors, "due_date", trial.dueDateField.setFromRaw(raw.due_date));
-        this.pushFieldError(errors, "cost_of_delay", trial.costOfDelayField.setFromRaw(raw.cost_of_delay));
-        this.pushFieldError(errors, "effort", trial.effortField.setFromRaw(raw.effort));
+        const fields = this.fields();
+        for (const field of fields) {
+            const key = field._name as keyof TodoRawInput;
+            trial.pushFieldError(errors, field._name, field.setFromRaw(raw[key]));
+        }
 
         if (errors.length > 0) {
             return { ok: false, errors };
         }
 
-        this.shortField = trial.shortField;
-        this.descriptionField = trial.descriptionField;
-        this.dueDateField = trial.dueDateField;
-        this.costOfDelayField = trial.costOfDelayField;
-        this.effortField = trial.effortField;
+        for (const field of fields) {
+            const key = field._name as keyof TodoRawInput;
+            field.setFromRaw(raw[key]);
+        }
+
         return { ok: true, errors: [] };
     }
 
@@ -435,36 +434,26 @@ class Todo {
         // Only apply provided values, ignore missing ones.
         const trial = this.clone();
         const errors = [] as TodoValidationError[];
+        const fields = this.fields();
 
-        if (raw.short !== undefined) {
-            this.pushFieldError(errors, "short", trial.shortField.setFromRaw(raw.short));
-        }
-
-        if (raw.description !== undefined) {
-            this.pushFieldError(errors, "description", trial.descriptionField.setFromRaw(raw.description));
-        }
-
-        if (raw.due_date !== undefined) {
-            this.pushFieldError(errors, "due_date", trial.dueDateField.setFromRaw(raw.due_date));
-        }
-
-        if (raw.cost_of_delay !== undefined) {
-            this.pushFieldError(errors, "cost_of_delay", trial.costOfDelayField.setFromRaw(raw.cost_of_delay));
-        }
-
-        if (raw.effort !== undefined) {
-            this.pushFieldError(errors, "effort", trial.effortField.setFromRaw(raw.effort));
+        for (const field of fields) {
+            const key = field._name as keyof TodoPatchInput;
+            if (raw[key] !== undefined) {
+                trial.pushFieldError(errors, field._name, field.setFromRaw(raw[key] as string));
+            }
         }
 
         if (errors.length > 0) {
             return { ok: false, errors };
         }
 
-        this.shortField = trial.shortField;
-        this.descriptionField = trial.descriptionField;
-        this.dueDateField = trial.dueDateField;
-        this.costOfDelayField = trial.costOfDelayField;
-        this.effortField = trial.effortField;
+
+        for (const field of fields) {
+            const key = field._name as keyof TodoPatchInput;
+            if (raw[key] !== undefined) {
+                field.setFromRaw(raw[key] as string);
+            }
+        }
         return { ok: true, errors: [] };
     }
 
@@ -496,13 +485,7 @@ class Todo {
     }
 
     renderEditForm(action: string): string {
-        const fieldsHtml = [
-            this.shortField.renderField(),
-            this.descriptionField.renderField(),
-            this.dueDateField.renderField(),
-            this.costOfDelayField.renderField(),
-            this.effortField.renderField(),
-        ].join("\n");
+        const fieldsHtml = this.fields().map((field) => field.renderField()).join("\n");
 
         return `
       <form method="post" action="${escapeHtml(action)}">
@@ -514,41 +497,40 @@ class Todo {
     `.trim();
     }
 
-    toJson(): TodoJson {
-        return {
-            id: this._id,
-            short: this.shortField.value(),
-            description: this.descriptionField.value(),
-            due_date: this.dueDateField.value(),
-            cost_of_delay: parseInt(this.costOfDelayField.value(), 10),
-            effort: this.effortField.value(),
-        };
-    }
+toJson(): TodoJson {
+    const fieldValues = Object.fromEntries(this.fields().map((field) => [field._name, field.value()])) as unknown as Omit<TodoJson, "id">;
+    return {
+        
+        ...fieldValues,
+       
+        cost_of_delay: parseInt(this.costOfDelayField.value(), 10),
+     
+        id: this._id,
+    };
+}
 
     toJSON(): TodoJson {
         return this.toJson();
     }
 
     insertSql(): string {
+        const fields = this.fields().map((field) => field.SQLInsert()).join(", ");
         const INSERT = `INSERT INTO ${this._table_name}`;
-        const FIELDS = `SET ${this.shortField.SQLInsert()}, ${this.descriptionField.SQLInsert()}, ${this.dueDateField.SQLInsert()}, ${this.costOfDelayField.SQLInsert()}, ${this.effortField.SQLInsert()}`;
+        const FIELDS = `SET ${fields}`;
         return `${INSERT} ${FIELDS}`;
     }
 
     updateSql(): string {
         const UPDATE = `UPDATE ${this._table_name}`;
-        const SET = `SET ${this.shortField.SQLInsert()}, ${this.descriptionField.SQLInsert()}, ${this.dueDateField.SQLInsert()}, ${this.costOfDelayField.SQLInsert()}, ${this.effortField.SQLInsert()}`;
+        const SET = `SET ${this.fields().map((field) => field.SQLInsert()).join(", ")}`;
         const WHERE = `WHERE id = $6`;
         return `${UPDATE} ${SET} ${WHERE}`;
     }
 
     private clone(): Todo {
+        const fieldValues = Object.fromEntries(this.fields().map((field) => [field._name, field.value()])) as TodoInitial;
         return new Todo(this._id, {
-            short: this.short(),
-            description: this.description(),
-            due_date: this.dueDate(),
-            cost_of_delay: this.costOfDelay(),
-            effort: this.effort(),
+            ...fieldValues
         });
     }
 
