@@ -1,30 +1,11 @@
-import { Todo, type TodoInitial } from "./todo";
+import { Todo, type TodoRawInput } from "./todo";
 
-// We use fixi on the frontend to do "hypermedia" and "HATEOS"
-
-// ENDPOINTS
-// GET /todos -> list of todos
-// GET /todos/1 -> one todo
-// POST /todos -> create a new todo
-// PATCH /todos/1 -> update a todo
-// DELETE /todos/1 -> delete a todo
-
-/** 
- * On the frontend we only use that to initialize the web app: 
- * 
- * <script>
-    const output = document.getElementById('output');
-    fetch("/todos/list")
-        .then(response => response.text())
-        .then(html => output.innerHTML = html)
-        .catch(error => console.error('Error fetching initial content:', error));
-    </script>
+/**
+ * A simple list with todo items and an action button to edit them
  */
-
-// we have to make sure to react to /todos/list first
 function TodoList() {
     const rows = todos.map(todo => todo.renderTableRow());
-     return `
+    return `
         <table>
             <thead>
                 <tr>
@@ -42,10 +23,26 @@ function TodoList() {
             </tbody>
         </table>
     `;
-     
 }
+
+/**
+ * A form to edit a todo item
+ */
+function EditTodo(id: string) {
+    if (!id) {
+        return htmlResponse("Not Found", 404);
+    }
+
+    const todo = todos.find(t => t.id() === Number(id));
+    if (!todo) {
+        return htmlResponse("Not Found", 404);
+    }
+
+    return htmlResponse(`Edit todo ${id}: ${todo.renderEditForm(`/todos/${id}/update`)}`);
+}
+
 const todos: Todo[] = [];
-const example: TodoInitial = {
+const example: TodoRawInput = {
     short: "Example Todo",
     description: "This is an example todo",
     effort: 'hours',
@@ -67,38 +64,60 @@ todos.push(exampleTodo);
 
 const server = Bun.serve({
     routes: {
+        // INDEX
         "/": Bun.file("./index.html"),
+
+        // FIXI
         "/fixi-0.9.2.js": Bun.file("./static/fixi-0.9.2.js"),
+        
+        // CSS
         "/style.css": Bun.file("./static/style.css"),
-        // Static routes
+
+        // STATUS
         "/status": htmlResponse("OK"),
-        // Dynamic routes
-        "/todos/:id/edit": req => {
-            const { id } = req.params;
-            // find a todo
-            const todo = todos.find(t => t.id() === Number(id));
-            if (!todo) {
-                return htmlResponse("Not Found", 404);
-            } else {
-                return htmlResponse(`Edit todo ${id}: ${todo.renderEditForm("")}`);
-            }
-        },
-        "/todos/list": htmlResponse(TodoList()),
-        // Per-HTTP method handlers
-        "/todos": {
-            GET: () => htmlResponse("List posts"),
+
+        // LIST
+        "/todos/list": () => htmlResponse(TodoList()),
+
+        // EDIT
+        "/todos/:id/edit": req => EditTodo(req.params.id),
+   
+        // UPDATE
+        "/todos/:id/update": {
             POST: async req => {
-                const body = await req.json() as Record<string, unknown>;
-                return Response.json({ created: true, ...body });
+                console.log(req);
+                const id = req.params.id;
+                if (!id) {
+                    return htmlResponse("Not Found", 404);
+                }
+                const todo = todos.find(t => t.id() === Number(id));
+                if (!todo) {
+                    return htmlResponse("Not Found", 404);
+                }
+
+                const formData = await req.formData();
+                const data = {
+                    short : formData.get("short") as string,
+                    description : formData.get("description") as string,
+                    effort : formData.get("effort") as string,
+                    cost_of_delay : Number(formData.get("cost_of_delay")),
+                    due_date : formData.get("due_date") as string,
+                } as TodoRawInput;
+            
+                const result = todo.apply(data);
+                if (!result.ok) {
+                    return htmlResponse(`Error: ${result.errors.join(", ")}`, 400);
+                }
+         
+                return htmlResponse( TodoList(), 200);
             },
         },
 
-        // Serve a file by lazily loading it into memory
+        // FAVICON
         "/favicon.ico": Bun.file("./favicon.ico"),
     },
 
-    // (optional) fallback for unmatched routes:
-    // Required if Bun's version < 1.2.3
+    // CATCH ALL
     fetch(_) {
         return new Response("Not Found", { status: 404 });
     },

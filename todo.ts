@@ -426,8 +426,8 @@ class Todo {
         if (errors.length > 0) {
             return { ok: false, errors };
         }
-
-        for (const field of fields) {
+        const real = this.fields();
+        for (const field of real) {
             const key = field._name as keyof TodoRawInput;
             field.setFromRaw(raw[key]);
         }
@@ -525,7 +525,13 @@ class Todo {
         const fieldsHtml = this.fields().map((field) => field.renderField()).join("\n");
 
         return `
-      <form method="post" action="${escapeHtml(action)}">
+      <form  
+        action="/todos/${this._id}/update"
+        method="post"
+        fx-action="/todos/${this._id}/update"
+        fx-method="POST"
+        fx-target="#output"
+        fx-swap="innerHTML">
         ${fieldsHtml}
         <div>
           <input type="submit" value="Save">
@@ -573,7 +579,7 @@ class Todo {
         } as Record<string, string>;
         return object;
     }
- 
+
     private clone(): Todo {
         return new Todo(
             this._id, {
@@ -610,5 +616,5 @@ export {
     type TodoRawInput,
     type TodoPatchInput,
     type TodoValidationResult,
-    type TodoValidationError,    
+    type TodoValidationError,
 };
