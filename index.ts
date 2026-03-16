@@ -37,15 +37,18 @@ todos.push(exampleTodo);
 const server = Bun.serve({
   // `routes` requires Bun v1.2.3+
   routes: {
+    // index.html is in /static
+    "/": Bun.file("./index.html"),
+    "/static/fixi-0.9.2.js": Bun.file("./static/fixi-0.9.2.js"),
+    "/static/style.css": Bun.file("./static/style.css"),
     // Static routes
     "/status": new Response("OK"),
-
     // Dynamic routes
     "/todo/:id": req => {
       const todo = todos.filter(todo => String(todo.id()) === req.params.id)[0];
       return todo ? Response.json(todo) : new Response("Not found", { status: 404 });
     },
-
+    "/todos/list": new Response("TBA"),
     // Per-HTTP method handlers
     "/todos": {
       GET: () => new Response("List posts"),
