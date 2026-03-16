@@ -420,7 +420,8 @@ class Todo {
         const fields = trial.fields();
         for (const field of fields) {
             const key = field._name as keyof TodoRawInput;
-            this.pushFieldError(errors, field._name, field.setFromRaw(raw[key]));
+            const error = field.setFromRaw(raw[key]);
+            this.pushFieldError(errors, field._name, error);
         }
 
         if (errors.length > 0) {
@@ -447,8 +448,10 @@ class Todo {
 
         for (const field of fields) {
             const key = field._name as keyof TodoPatchInput;
+            
             if (raw[key] !== undefined) {
-                trial.pushFieldError(errors, field._name, field.setFromRaw(raw[key] as string));
+                const error = field.setFromRaw(raw[key]);
+                trial.pushFieldError(errors, field._name, error);
             }
         }
 
@@ -539,12 +542,12 @@ class Todo {
     /**
      * You get all keys of the todo as an array. This is useful for generic handling of fields, for example in forms or similar use cases. It also abstracts away the internal structure of the Todo class so the consumer doesn't need to know about the specific field classes we use internally.
      */
-    keys() {
+    keys(): string[] {
         return this.fields().map((field) => field._name);
     }
 
     /** Gives you a very plain object for use in query building (e.g SQL) */
-    values() {
+    values(): Record<string, string> {
         const object = {} as Record<string, string>;
         for (const field of this.fields()) {
             object[field._name] = field.value();
