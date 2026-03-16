@@ -38,9 +38,38 @@ function EditTodo(id: string) {
         return htmlResponse("Not Found", 404);
     }
 
-    return htmlResponse(`Edit todo ${id}: ${todo.renderEditForm(`/todos/${id}/update`)}`);
+    return htmlResponse(`Edit todo ${id}: ${todo.renderEditForm()}`);
 }
 
+/**
+ * Parses the form data and updates the todo item. If there are any validation errors, it returns a 400 response with the error messages. Otherwise, it returns the updated todo list.
+ */
+async function parseEdit( req: Bun.BunRequest) {
+    const id = req.params["id"];
+    if (!id) {
+        return htmlResponse("Not Found", 404);
+    }
+    const todo = todos.find(t => t.id() === Number(id));
+    if (!todo) {
+        return htmlResponse("Not Found", 404);
+    }
+
+    const formData = await req.formData();
+    const data = {
+        short: formData.get("short") as string,
+        description: formData.get("description") as string,
+        effort: formData.get("effort") as string,
+        cost_of_delay: Number(formData.get("cost_of_delay")),
+        due_date: formData.get("due_date") as string,
+    } as TodoRawInput;
+
+    const result = todo.apply(data);
+    if (!result.ok) {
+        return htmlResponse(`Error: ${result.errors.join(", ")}`, 400);
+    }
+
+    return htmlResponse(TodoList(), 200);
+}
 const todos: Todo[] = [];
 const example: TodoRawInput = {
     short: "Example Todo",
@@ -69,7 +98,7 @@ const server = Bun.serve({
 
         // FIXI
         "/fixi-0.9.2.js": Bun.file("./static/fixi-0.9.2.js"),
-        
+
         // CSS
         "/style.css": Bun.file("./static/style.css"),
 
@@ -80,37 +109,11 @@ const server = Bun.serve({
         "/todos/list": () => htmlResponse(TodoList()),
 
         // EDIT
-        "/todos/:id/edit": req => EditTodo(req.params.id),
-   
+        "/todos/:id/edit": req => EditTodo(req.params["id"]),
+
         // UPDATE
         "/todos/:id/update": {
-            POST: async req => {
-                console.log(req);
-                const id = req.params.id;
-                if (!id) {
-                    return htmlResponse("Not Found", 404);
-                }
-                const todo = todos.find(t => t.id() === Number(id));
-                if (!todo) {
-                    return htmlResponse("Not Found", 404);
-                }
-
-                const formData = await req.formData();
-                const data = {
-                    short : formData.get("short") as string,
-                    description : formData.get("description") as string,
-                    effort : formData.get("effort") as string,
-                    cost_of_delay : Number(formData.get("cost_of_delay")),
-                    due_date : formData.get("due_date") as string,
-                } as TodoRawInput;
-            
-                const result = todo.apply(data);
-                if (!result.ok) {
-                    return htmlResponse(`Error: ${result.errors.join(", ")}`, 400);
-                }
-         
-                return htmlResponse( TodoList(), 200);
-            },
+            POST: async req => parseEdit(req),
         },
 
         // FAVICON

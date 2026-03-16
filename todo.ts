@@ -521,7 +521,7 @@ class Todo {
     /**
      * This gives you a form where you can edit all fields. You can use it for both creating and editing. Just make sure to provide the right action URL. The form is unstyled and basic on purpose, but it includes all necessary attributes for a good user experience like labels, input types and max lengths.
      */
-    renderEditForm(action: string): string {
+    renderEditForm(): string {
         const fieldsHtml = this.fields().map((field) => field.renderField()).join("\n");
 
         return `
