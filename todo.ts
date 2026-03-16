@@ -371,6 +371,9 @@ class Todo {
         ];
     }
 
+    id(): number {
+        return this._id;
+    }
     /**
      * A short title for the todo
      */
