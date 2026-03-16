@@ -384,6 +384,16 @@ class Todo {
         this.effortField = new TodoEffort(initial?.effort ?? "hours");
     }
 
+    private fields(): (TodoField & canSQL)[] {
+        return [
+            this.shortField,
+            this.descriptionField,
+            this.dueDateField,
+            this.costOfDelayField,
+            this.effortField,
+        ];
+    }
+
     id(): number {
         return this._id;
     }
@@ -497,17 +507,16 @@ class Todo {
     `.trim();
     }
 
-toJson(): TodoJson {
-    const fieldValues = Object.fromEntries(this.fields().map((field) => [field._name, field.value()])) as unknown as Omit<TodoJson, "id">;
-    return {
-        
-        ...fieldValues,
-       
-        cost_of_delay: parseInt(this.costOfDelayField.value(), 10),
-     
-        id: this._id,
-    };
-}
+    toJson(): TodoJson {
+        return {
+            id: this._id,
+            short: this.shortField.value(),
+            description: this.descriptionField.value(),
+            due_date: this.dueDateField.value() || null,
+            cost_of_delay: parseInt(this.costOfDelayField.value(), 10),
+            effort: this.effortField.value(),
+        };
+    }
 
     toJSON(): TodoJson {
         return this.toJson();
