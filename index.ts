@@ -110,54 +110,39 @@ function htmlResponse(html: string, status = 200): Response {
 const exampleTodo = new Todo(1, example)
 todos.push(exampleTodo);
 
-type AppRoute =
-    | "/"
-    | "/fixi-0.9.2.js"
-    | "/style.css"
-    | "/status"
-    | "/todos/list"
-    | "/todos/:id/edit"
-    | "/todos/:id/update"
-    | "/todos/new"
-    | "/favicon.ico";
-
-const routes = {
-    // INDEX
-    "/": Bun.file("./index.html"),
-
-    // FIXI
-    "/fixi-0.9.2.js": Bun.file("./static/fixi-0.9.2.js"),
-
-    // CSS
-    "/style.css": Bun.file("./static/style.css"),
-
-    // STATUS
-    "/status": htmlResponse("OK"),
-
-    // LIST
-    "/todos/list": () => htmlResponse(TodoList()),
-
-    // EDIT
-    "/todos/:id/edit": (req: Bun.BunRequest<"/todos/:id/edit">) => EditTodo(req.params["id"]),
-
-    // UPDATE
-    "/todos/:id/update": {
-        POST: async (req: Bun.BunRequest<"/todos/:id/update">) => parseEdit(req),
-    },
-
-    // CREATE
-    "/todos/new": () => CreateTodo(),
-
-    // FAVICON
-    "/favicon.ico": Bun.file("./favicon.ico"),
-} satisfies Bun.Serve.Routes<undefined, AppRoute>;
-
 const server = Bun.serve({
-    routes,
+    routes: {
+        // INDEX
+        "/": Bun.file("./index.html"),
 
-    // CATCH ALL
-    fetch(_: Request) {
-        return new Response("Not Found", { status: 404 });
+        // FIXI
+        "/fixi-0.9.2.js": Bun.file("./static/fixi-0.9.2.js"),
+
+        // CSS
+        "/style.css": Bun.file("./static/style.css"),
+
+        // STATUS
+        "/status": htmlResponse("OK"),
+
+        // LIST
+        "/todos/list": () => htmlResponse(TodoList()),
+
+        // EDIT
+        "/todos/:id/edit": (req: Bun.BunRequest<"/todos/:id/edit">) => EditTodo(req.params["id"]),
+
+        // UPDATE
+        "/todos/:id/update": {
+            POST: async (req: Bun.BunRequest<"/todos/:id/update">) => parseEdit(req),
+        },
+
+        // CREATE
+        "/todos/new": () => CreateTodo(),
+
+        // FAVICON
+        "/favicon.ico": Bun.file("./favicon.ico"),
+
+        // CATCH ALL
+        "/*": new Response("Not Found", { status: 404 }),
     },
 });
 
