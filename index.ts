@@ -110,40 +110,53 @@ function htmlResponse(html: string, status = 200): Response {
 const exampleTodo = new Todo(1, example)
 todos.push(exampleTodo);
 
-const server = Bun.serve({
-    routes: {
-        // INDEX
-        "/": Bun.file("./index.html"),
+type AppRoute =
+    | "/"
+    | "/fixi-0.9.2.js"
+    | "/style.css"
+    | "/status"
+    | "/todos/list"
+    | "/todos/:id/edit"
+    | "/todos/:id/update"
+    | "/todos/new"
+    | "/favicon.ico";
 
-        // FIXI
-        "/fixi-0.9.2.js": Bun.file("./static/fixi-0.9.2.js"),
+const routes = {
+    // INDEX
+    "/": Bun.file("./index.html"),
 
-        // CSS
-        "/style.css": Bun.file("./static/style.css"),
+    // FIXI
+    "/fixi-0.9.2.js": Bun.file("./static/fixi-0.9.2.js"),
 
-        // STATUS
-        "/status": htmlResponse("OK"),
+    // CSS
+    "/style.css": Bun.file("./static/style.css"),
 
-        // LIST
-        "/todos/list": () => htmlResponse(TodoList()),
+    // STATUS
+    "/status": htmlResponse("OK"),
 
-        // EDIT
-        "/todos/:id/edit": req => EditTodo(req.params["id"]),
+    // LIST
+    "/todos/list": () => htmlResponse(TodoList()),
 
-        // UPDATE
-        "/todos/:id/update": {
-            POST: async req => parseEdit(req),
-        },
+    // EDIT
+    "/todos/:id/edit": (req: Bun.BunRequest<"/todos/:id/edit">) => EditTodo(req.params["id"]),
 
-        // CREATE
-        "/todos/new": () => CreateTodo(),
-
-        // FAVICON
-        "/favicon.ico": Bun.file("./favicon.ico"),
+    // UPDATE
+    "/todos/:id/update": {
+        POST: async (req: Bun.BunRequest<"/todos/:id/update">) => parseEdit(req),
     },
 
+    // CREATE
+    "/todos/new": () => CreateTodo(),
+
+    // FAVICON
+    "/favicon.ico": Bun.file("./favicon.ico"),
+} satisfies Bun.Serve.Routes<undefined, AppRoute>;
+
+const server = Bun.serve({
+    routes,
+
     // CATCH ALL
-    fetch(_) {
+    fetch(_: Request) {
         return new Response("Not Found", { status: 404 });
     },
 });
