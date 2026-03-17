@@ -1,20 +1,20 @@
 /**
- * The idea of this file is to completely represent a Todo item. 
- * 
+ * The idea of this file is to completely represent a Todo item.
+ *
  * We deliberately include persistence and representation to make this a deep module aka Ousterhouts design.
- * 
- * This is just an experiment to compare different styles of development. 
- * 
+ *
+ * This is just an experiment to compare different styles of development.
+ *
  * Anyone working on this is not allowed to change the philosophy of this module but is free to change the implementation.
- * 
+ *
  * What is encouraged: Add MongoDB in the same style as SQL was added. Add JSON representation for non-HTML consuming Frontends
- * 
- * Add other forms of persistence or representation as you see fit. 
- * 
+ *
+ * Add other forms of persistence or representation as you see fit.
+ *
  * Also encouraged: Try to be LESS generic. Re-usability is a non-concern here. We go low abstraction WITHIN the file WHILE abstracting for the consumer.
- * 
- * Also really encouraged: A lot of comments on methods and classes. 
- * 
+ *
+ * Also really encouraged: A lot of comments on methods and classes.
+ *
  * NOT encouraged: Adding a "TodoList" class or similar. This file is about the Todo item, not about collections of Todos.
  */
 
@@ -43,8 +43,11 @@ type TodoInitial = TodoOptionals;
 
 interface TodoField {
     _name: string;
+
     value(): Short | Description | DueDate | CostOfDelay | Effort;
+
     setFromRaw(raw: Short | Description | DueDate | CostOfDelay | Effort): Error | null;
+
     renderField(): string;
 }
 
@@ -153,7 +156,6 @@ class TodoDescription implements TodoField {
     value(): Description {
         return this._value;
     }
-
 
 
     renderField(): string {
@@ -337,19 +339,19 @@ class TodoEffort implements TodoField {
 }
 
 /**
- * The Todo class. Some would call it a god-object, but I view it as a deep module (for now). I might changem my view.
- * 
+ * The Todo class. Some would call it a god-object, but I view it as a deep module (for now). I might change my view.
+ *
  * The Todo class should enable users to create Todo items and change them safely. It should enable them to persist them without issues and to render representations and forms in an easy manner.
  */
 class Todo {
-    readonly _table_name = "todos";
+
     private readonly _id: number;
 
-    private shortField: TodoShort;
-    private descriptionField: TodoDescription;
-    private dueDateField: TodoDueDate;
-    private costOfDelayField: TodoCostOfDelay;
-    private effortField: TodoEffort;
+    private readonly shortField: TodoShort;
+    private readonly descriptionField: TodoDescription;
+    private readonly dueDateField: TodoDueDate;
+    private readonly costOfDelayField: TodoCostOfDelay;
+    private readonly effortField: TodoEffort;
 
     constructor(id: number, initial?: TodoInitial) {
         this._id = id;
@@ -361,19 +363,10 @@ class Todo {
         this.effortField = new TodoEffort(initial?.effort ?? "hours");
     }
 
-    private fields(): TodoField[] {
-        return [
-            this.shortField,
-            this.descriptionField,
-            this.dueDateField,
-            this.costOfDelayField,
-            this.effortField,
-        ];
-    }
-
     id(): number {
         return this._id;
     }
+
     /**
      * A short title for the todo
      */
@@ -396,14 +389,14 @@ class Todo {
     }
 
     /**
-     * A raw estimate how much we loose if we postpone this task, on a scale from -2 (allmost nothing) to 2 (a ton). Required.
+     * A raw estimate how much we loose if we postpone this task, on a scale from -2 (almost nothing) to 2 (a ton). Required.
      */
     costOfDelay(): number {
         return Number(this.costOfDelayField.value());
     }
 
     /**
-     * A raw estimate of effort in time. Allowed are "mins", "hours", "days", "weeks" and "months". Required.
+     * A raw estimate of effort in time. Allowed: "mins", "hours", "days", "weeks" and "months". Required.
      */
     effort(): string {
         return this.effortField.value();
@@ -416,56 +409,77 @@ class Todo {
         const errors = [] as TodoValidationError[];
         // Validate against a clone so the original todo stays unchanged on failure.
         const trial = this.clone();
-        const fields = trial.fields();
-        for (const field of fields) {
-            const key = field._name as keyof TodoRawInput;
-            const error = field.setFromRaw(raw[key]);
-            this.pushFieldError(errors, field._name, error);
-        }
+        trial.pushFieldError(errors, "short", trial.shortField.setFromRaw(raw.short));
+        trial.pushFieldError(errors, "description", trial.descriptionField.setFromRaw(raw.description));
+        trial.pushFieldError(errors, "due_date", trial.dueDateField.setFromRaw(raw.due_date));
+        trial.pushFieldError(errors, "cost_of_delay", trial.costOfDelayField.setFromRaw(raw.cost_of_delay));
+        trial.pushFieldError(errors, "effort", trial.effortField.setFromRaw(raw.effort));
 
         if (errors.length > 0) {
-            return { ok: false, errors };
-        }
-        const real = this.fields();
-        for (const field of real) {
-            const key = field._name as keyof TodoRawInput;
-            field.setFromRaw(raw[key]);
+            return {ok: false, errors};
         }
 
-        return { ok: true, errors: [] };
+        this.shortField.setFromRaw(raw.short);
+        this.descriptionField.setFromRaw(raw.description);
+        this.dueDateField.setFromRaw(raw.due_date);
+        this.costOfDelayField.setFromRaw(raw.cost_of_delay);
+        this.effortField.setFromRaw(raw.effort);
+
+        return {ok: true, errors: []};
     }
 
     /**
      * Updates a partial set of fields. But they need to be valid or the update fails and returns errors.
      */
     patch(raw: TodoPatchInput): TodoValidationResult {
-        const errors = [] as TodoValidationError[];
-        // Only apply provided values, ignore missing ones.
+        const errors: TodoValidationError[] = [];
         const trial = this.clone();
 
-        const fields = trial.fields();
+        if (raw.short !== undefined) {
+            trial.pushFieldError(errors, "short", trial.shortField.setFromRaw(raw.short));
+        }
 
-        for (const field of fields) {
-            const key = field._name as keyof TodoPatchInput;
+        if (raw.description !== undefined) {
+            trial.pushFieldError(errors, "description", trial.descriptionField.setFromRaw(raw.description));
+        }
 
-            if (raw[key] !== undefined) {
-                const error = field.setFromRaw(raw[key]);
-                trial.pushFieldError(errors, field._name, error);
-            }
+        if (raw.due_date !== undefined) {
+            trial.pushFieldError(errors, "due_date", trial.dueDateField.setFromRaw(raw.due_date));
+        }
+
+        if (raw.cost_of_delay !== undefined) {
+            trial.pushFieldError(errors, "cost_of_delay", trial.costOfDelayField.setFromRaw(raw.cost_of_delay));
+        }
+
+        if (raw.effort !== undefined) {
+            trial.pushFieldError(errors, "effort", trial.effortField.setFromRaw(raw.effort));
         }
 
         if (errors.length > 0) {
-            return { ok: false, errors };
+            return {ok: false, errors};
         }
 
-
-        for (const field of fields) {
-            const key = field._name as keyof TodoPatchInput;
-            if (raw[key] !== undefined) {
-                field.setFromRaw(raw[key] as string);
-            }
+        if (raw.short !== undefined) {
+            this.shortField.setFromRaw(raw.short);
         }
-        return { ok: true, errors: [] };
+
+        if (raw.description !== undefined) {
+            this.descriptionField.setFromRaw(raw.description);
+        }
+
+        if (raw.due_date !== undefined) {
+            this.dueDateField.setFromRaw(raw.due_date);
+        }
+
+        if (raw.cost_of_delay !== undefined) {
+            this.costOfDelayField.setFromRaw(raw.cost_of_delay);
+        }
+
+        if (raw.effort !== undefined) {
+            this.effortField.setFromRaw(raw.effort);
+        }
+
+        return {ok: true, errors: []};
     }
 
     /**
@@ -562,7 +576,7 @@ class Todo {
     }
 
     /**
-     * An automatic converson to JSON from the Object itself. I have no idea for what it's useful..
+     * An automatic conversion to JSON from the Object itself. I have no idea for what it's useful.
      */
     toJSON(): TodoJson {
         return this.toJson();
@@ -575,27 +589,36 @@ class Todo {
         return this.fields().map((field) => field._name);
     }
 
-    /** Gives you a very plain object for use in query building (e.g SQL) */
+    /** Gives you a very plain object for use in query building (e.g. SQL) */
     values(): Record<string, string> {
-        const object = {
+        return {
             short: this.shortField.value(),
             description: this.descriptionField.value(),
             due_date: this.dueDateField.value(),
             cost_of_delay: String(this.costOfDelayField.value()),
             effort: this.effortField.value(),
         } as Record<string, string>;
-        return object;
+    }
+
+    private fields(): TodoField[] {
+        return [
+            this.shortField,
+            this.descriptionField,
+            this.dueDateField,
+            this.costOfDelayField,
+            this.effortField,
+        ];
     }
 
     private clone(): Todo {
         return new Todo(
             this._id, {
-            short: this.shortField.value(),
-            description: this.descriptionField.value(),
-            due_date: this.dueDateField.value(),
-            cost_of_delay: this.costOfDelayField.value(),
-            effort: this.effortField.value(),
-        });
+                short: this.shortField.value(),
+                description: this.descriptionField.value(),
+                due_date: this.dueDateField.value(),
+                cost_of_delay: this.costOfDelayField.value(),
+                effort: this.effortField.value(),
+            });
     }
 
     private pushFieldError(errors: TodoValidationError[], field: string, error: Error | null): void {
@@ -603,7 +626,7 @@ class Todo {
             return;
         }
 
-        errors.push({ field, message: error.message });
+        errors.push({field, message: error.message});
     }
 }
 
