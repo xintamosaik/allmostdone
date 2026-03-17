@@ -98,8 +98,8 @@ const example: TodoRawInput = {
     due_date: "2024-12-31",
 }
 
-function htmlResponse(html: string, status = 200): Response {
-    return new Response(html, {
+function htmlResponse(html: string, status = 200): globalThis.Response {
+    return new globalThis.Response(html, {
         status,
         headers: {
             "Content-Type": "text/html; charset=utf-8",
@@ -142,7 +142,7 @@ const server = Bun.serve({
         "/favicon.ico": Bun.file("./favicon.ico"),
 
         // CATCH ALL
-        "/*": new Response("Not Found", { status: 404 }),
+        "/*": new globalThis.Response("Not Found", { status: 404 }),
     },
 });
 
