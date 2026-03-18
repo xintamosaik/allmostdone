@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 
 	"time"
 
@@ -23,7 +24,6 @@ type Todo struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
-
 
 // helper to parse common form fields from a request
 func parseTodoForm(r *http.Request) (short string, description string, dueDate *time.Time, costOfDelay int16, effort string, err error) {
@@ -80,10 +80,16 @@ func main() {
 
 	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		if _, writeErr := fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err); writeErr != nil {
+			log.Printf("unable to write database connection error to stderr: %v", writeErr)
+		}
 		os.Exit(1)
 	}
-	defer conn.Close(context.Background())
+	defer func() {
+		if closeErr := conn.Close(context.Background()); closeErr != nil {
+			log.Printf("unable to close database connection: %v", closeErr)
+		}
+	}()
 
 	var db string
 	err = conn.QueryRow(context.Background(), "select current_database()").Scan(&db)
@@ -101,5 +107,7 @@ func main() {
 	http.HandleFunc("POST /todos/{id}/update", updateHandler(conn))
 
 	fmt.Println("Listening on :3000")
-	http.ListenAndServe(":3000", nil)
+	if err := http.ListenAndServe(":3000", nil); err != nil {
+		log.Fatalf("http server failed: %v", err)
+	}
 }
