@@ -110,40 +110,52 @@ function htmlResponse(html: string, status = 200): globalThis.Response {
 const exampleTodo = new Todo(1, example)
 todos.push(exampleTodo);
 
-const server = Bun.serve({
-    routes: {
-        // INDEX
-        "/": Bun.file("./index.html"),
+const port = Number(Bun.env.PORT ?? "3000");
 
-        // FIXI
-        "/fixi-0.9.2.js": Bun.file("./static/fixi-0.9.2.js"),
+try {
+    const server = Bun.serve({
+        port,
+        routes: {
+            // INDEX
+            "/": Bun.file("./index.html"),
 
-        // CSS
-        "/style.css": Bun.file("./static/style.css"),
+            // FIXI
+            "/fixi-0.9.2.js": Bun.file("./static/fixi-0.9.2.js"),
 
-        // STATUS
-        "/status": htmlResponse("OK"),
+            // CSS
+            "/style.css": Bun.file("./static/style.css"),
 
-        // LIST
-        "/todos/list": () => htmlResponse(TodoList()),
+            // STATUS
+            "/status": htmlResponse("OK"),
 
-        // EDIT
-        "/todos/:id/edit": (req: Bun.BunRequest<"/todos/:id/edit">) => EditTodo(req.params["id"]),
+            // LIST
+            "/todos/list": () => htmlResponse(TodoList()),
 
-        // UPDATE
-        "/todos/:id/update": {
-            POST: async (req: Bun.BunRequest<"/todos/:id/update">) => parseEdit(req),
+            // EDIT
+            "/todos/:id/edit": (req: Bun.BunRequest<"/todos/:id/edit">) => EditTodo(req.params["id"]),
+
+            // UPDATE
+            "/todos/:id/update": {
+                POST: async (req: Bun.BunRequest<"/todos/:id/update">) => parseEdit(req),
+            },
+
+            // CREATE
+            "/todos/new": () => CreateTodo(),
+
+            // FAVICON
+            "/favicon.ico": Bun.file("./favicon.ico"),
+
+            // CATCH ALL
+            "/*": new globalThis.Response("Not Found", { status: 404 }),
         },
+    });
 
-        // CREATE
-        "/todos/new": () => CreateTodo(),
-
-        // FAVICON
-        "/favicon.ico": Bun.file("./favicon.ico"),
-
-        // CATCH ALL
-        "/*": new globalThis.Response("Not Found", { status: 404 }),
-    },
-});
-
-console.log(`Server running at ${server.url}`);
+    console.log(`Server running at ${server.url}`);
+} catch (error) {
+    if (error instanceof Error) {
+        console.error(`Failed to start Bun server on port ${port}: ${error.message}`);
+    } else {
+        console.error(`Failed to start Bun server on port ${port}:`, error);
+    }
+    process.exit(1);
+}
