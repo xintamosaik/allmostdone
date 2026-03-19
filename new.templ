@@ -10,47 +10,66 @@ templ BackButton() {
 	</button>
 }
 
-templ NewForm(todo *Todo) {
-	<h1>Create Todo</h1>
+templ ShortInput(todo *Todo) {
+	<label for="short">Short:</label><br/>
+	<input type="text" id="short" name="short" value={ todo.Short }/><br/>
+}
+
+templ DescriptionInput(todo *Todo) {
+	<label for="description">Description:</label><br/>
+	<textarea id="description" name="description">{ todo.Description }</textarea><br/>
+}
+
+templ DueDateInput(todo *Todo) {
+	<label for="due_date">Due Date (YYYY-MM-DD):</label><br/>
+	<input type="date" id="due_date" name="due_date" value={ todoDueDateValue(todo) }/><br/>
+}
+
+templ CostOfDelayInput(todo *Todo) {
+	<label for="cost_of_delay">Cost of Delay:</label><br/>
+	<input
+		type="number"
+		id="cost_of_delay"
+		name="cost_of_delay"
+		min="-2"
+		max="2"
+		value={ todoCostOfDelayValue(todo) }/><br/>
+}
+
+templ EffortInput(todo *Todo) {
+	<label for="effort">Effort:</label><br/>
+	<select id="effort" name="effort">
+		<option value="mins" selected?={ todo.Effort == "mins" }>mins</option>
+		<option value="hours" selected?={ todo.Effort == "" || todo.Effort == "hours" }>hours</option>
+		<option value="days" selected?={ todo.Effort == "days" }>days</option>
+		<option value="weeks" selected?={ todo.Effort == "weeks" }>weeks</option>
+		<option value="months" selected?={ todo.Effort == "months" }>months</option>
+	</select><br/><br/>
+}
+
+templ SubmitInput(label string) {
+	<input type="submit" value={ label }/>
+}
+
+templ TodoForm(title string, action string, todo *Todo, submitLabel string) {
+	<h1>{ title }</h1>
 	<form
-		action="/todos/create"
+		action={ action }
 		method="post"
-		fx-action="/todos/create"
+		fx-action={ action }
 		fx-method="POST"
 		fx-target="#output"
 		fx-swap="innerHTML">
-		<label for="short">Short:</label><br/>
-		<input type="text" id="short" name="short" value={ todo.Short }/><br/>
-
-		<label for="description">Description:</label><br/>
-		<textarea id="description" name="description">{ todo.Description }</textarea><br/>
-
-		<label for="due_date">Due Date (YYYY-MM-DD):</label><br/>
-		if todo.DueDate != nil {
-			<input type="date" id="due_date" name="due_date" value={ todo.DueDate.Format("2006-01-02") }/><br/>
-		} else {
-			<input type="date" id="due_date" name="due_date"/><br/>
-		}
-
-		<label for="cost_of_delay">Cost of Delay:</label><br/>
-		<input
-			type="number"
-			id="cost_of_delay"
-			name="cost_of_delay"
-			min="-2"
-			max="2"
-			value={ templ.Sprintf("%d", todo.CostOfDelay) }/><br/>
-
-		<label for="effort">Effort:</label><br/>
-		<select id="effort" name="effort">
-			<option value="mins" selected?={ todo.Effort == "mins" }>mins</option>
-			<option value="hours" selected?={ todo.Effort == "" || todo.Effort == "hours" }>hours</option>
-			<option value="days" selected?={ todo.Effort == "days" }>days</option>
-			<option value="weeks" selected?={ todo.Effort == "weeks" }>weeks</option>
-			<option value="months" selected?={ todo.Effort == "months" }>months</option>
-		</select><br/><br/>
-
-		<input type="submit" value="Create"/>
+		@ShortInput(todo)
+		@DescriptionInput(todo)
+		@DueDateInput(todo)
+		@CostOfDelayInput(todo)
+		@EffortInput(todo)
+		@SubmitInput(submitLabel)
 		@BackButton()
 	</form>
+}
+
+templ NewForm(todo *Todo) {
+	@TodoForm("Create Todo", "/todos/create", todo, "Create")
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"context"
 	"time"
@@ -25,6 +26,23 @@ func createTodo(conn *pgx.Conn, short string, description string, dueDate *time.
 	).Scan(&t.ID, &t.Short, &t.Description, &t.DueDate, &t.CostOfDelay, &t.Effort, &t.CreatedAt, &t.UpdatedAt)
 
 	return t, err
+}
+
+func todoDueDateValue(todo *Todo) string {
+	if todo == nil || todo.DueDate == nil {
+		return ""
+	}
+	return todo.DueDate.Format("2006-01-02")
+}
+
+func todoCostOfDelayValue(todo *Todo) string {
+	if todo == nil {
+		return ""
+	}
+	if todo.ID == 0 && todo.Short == "" && todo.Description == "" && todo.DueDate == nil && todo.CostOfDelay == 0 && (todo.Effort == "" || todo.Effort == "hours") {
+		return ""
+	}
+	return strconv.FormatInt(int64(todo.CostOfDelay), 10)
 }
 
 func createHandler(conn *pgx.Conn) http.HandlerFunc {
