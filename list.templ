@@ -1,5 +1,7 @@
 package main
-
+import (
+"fmt"
+)
 templ TodoList(todos []Todo) {
 	<button fx-action="/todos/new" fx-target="#output" fx-swap="innerHTML">
 		New todo
@@ -28,7 +30,10 @@ templ TodoList(todos []Todo) {
 				<td>{ todoDisplayTimestamp(todo.CreatedAt) }</td>
 				<td>{ todoDisplayTimestamp(todo.UpdatedAt) }</td>
 				<td>
-					<button fx-action={ todoEditPath(todo.ID) } fx-target="#output" fx-swap="innerHTML">
+					<button
+					fx-action={ fmt.Sprintf("/todos/%d/edit", todo.ID) }
+					fx-target="#output"
+					fx-swap="innerHTML">
 						Edit
 					</button>
 				</td>
