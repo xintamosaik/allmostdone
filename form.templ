@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -19,6 +20,10 @@ func todoCostOfDelayValue(todo *Todo) string {
 		return ""
 	}
 	return strconv.FormatInt(int64(todo.CostOfDelay), 10)
+}
+
+func todoUpdatePath(id int) string {
+	return fmt.Sprintf("/todos/%d/update", id)
 }
 
 templ BackButton() {
@@ -67,5 +72,4 @@ templ EffortInput(effort string) {
 		<option value="months" selected?={ effort == "months" }>months</option>
 	</select><br/><br/>
 }
-
 
