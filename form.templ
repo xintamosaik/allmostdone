@@ -1,0 +1,71 @@
+package main
+
+import (
+	"strconv"
+)
+
+func todoDueDateValue(todo *Todo) string {
+	if todo == nil || todo.DueDate == nil {
+		return ""
+	}
+	return todo.DueDate.Format("2006-01-02")
+}
+
+func todoCostOfDelayValue(todo *Todo) string {
+	if todo == nil {
+		return ""
+	}
+	if todo.ID == 0 && todo.Short == "" && todo.Description == "" && todo.DueDate == nil && todo.CostOfDelay == 0 && (todo.Effort == "" || todo.Effort == "hours") {
+		return ""
+	}
+	return strconv.FormatInt(int64(todo.CostOfDelay), 10)
+}
+
+templ BackButton() {
+	<button
+		type="button"
+		fx-action="/todos/list"
+		fx-target="#output"
+		fx-swap="innerHTML">
+		Back
+	</button>
+}
+
+templ ShortInput(short string) {
+	<label for="short">Short:</label><br/>
+	<input type="text" id="short" name="short" value={ short }/><br/>
+}
+
+templ DescriptionInput(description string) {
+	<label for="description">Description:</label><br/>
+	<textarea id="description" name="description">{ description }</textarea><br/>
+}
+
+templ DueDateInput(dueDate string) {
+	<label for="due_date">Due Date (YYYY-MM-DD):</label><br/>
+	<input type="date" id="due_date" name="due_date" value={ dueDate }/><br/>
+}
+
+templ CostOfDelayInput(costOfDelay string) {
+	<label for="cost_of_delay">Cost of Delay:</label><br/>
+	<input
+		type="number"
+		id="cost_of_delay"
+		name="cost_of_delay"
+		min="-2"
+		max="2"
+		value={ costOfDelay }/><br/>
+}
+
+templ EffortInput(effort string) {
+	<label for="effort">Effort:</label><br/>
+	<select id="effort" name="effort">
+		<option value="mins" selected?={ effort == "mins" }>mins</option>
+		<option value="hours" selected?={ effort == "" || effort == "hours" }>hours</option>
+		<option value="days" selected?={ effort == "days" }>days</option>
+		<option value="weeks" selected?={ effort == "weeks" }>weeks</option>
+		<option value="months" selected?={ effort == "months" }>months</option>
+	</select><br/><br/>
+}
+
+

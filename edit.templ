@@ -1,0 +1,20 @@
+package main
+
+templ Edit( todo *Todo ) {
+	<h1>Edit Todo</h1>
+	<form
+		action={ todoUpdatePath(todo.ID) }
+		method="post"
+		fx-action={ todoUpdatePath(todo.ID) }
+		fx-method="POST"
+		fx-target="#output"
+		fx-swap="innerHTML">
+		@ShortInput(todo.Short)
+		@DescriptionInput(todo.Description)
+		@DueDateInput(todoDueDateValue(todo))
+		@CostOfDelayInput(todoCostOfDelayValue(todo))
+		@EffortInput(todo.Effort)
+		<input type="submit" value="Update"/>
+		@BackButton()
+	</form>
+}

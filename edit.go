@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -11,42 +10,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const editFormHTML = `
-<h1>Edit Todo</h1>
-<form
-  action="/todos/{{.ID}}/update"
-  method="post"
-  fx-action="/todos/{{.ID}}/update"
-  fx-method="POST"
-  fx-target="#output"
-  fx-swap="innerHTML">
-  <label for="short">Short:</label><br>
-  <input type="text" id="short" name="short" value="{{.Short}}"><br>
-
-  <label for="description">Description:</label><br>
-  <textarea id="description" name="description">{{.Description}}</textarea><br>
-
-  <label for="due_date">Due Date (YYYY-MM-DD):</label><br>
-  <input type="date" id="due_date" name="due_date" value="{{if .DueDate}}{{.DueDate.Format "2006-01-02"}}{{end}}">
-
-  <label for="cost_of_delay">Cost of Delay:</label><br>
-  <input type="number" id="cost_of_delay" name="cost_of_delay" min="-2" max="2" value="{{.CostOfDelay}}"><br>
-
-  <label for="effort">Effort:</label><br>
-  <select id="effort" name="effort">
-    <option value="mins" {{if eq .Effort "mins"}}selected{{end}}>mins</option>
-    <option value="hours" {{if eq .Effort "hours"}}selected{{end}}>hours</option>
-    <option value="days" {{if eq .Effort "days"}}selected{{end}}>days</option>
-    <option value="weeks" {{if eq .Effort "weeks"}}selected{{end}}>weeks</option>
-    <option value="months" {{if eq .Effort "months"}}selected{{end}}>months</option>
-  </select><br><br>
-
-  <input type="submit" value="Update">
-    {{template "backButton"}}
-</form>
-`
-var editForm = template.Must(template.New("editForm").Parse(editFormHTML + backButton))
-		
 func updateTodo(conn *pgx.Conn, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
 	tag, err := conn.Exec(
 		context.Background(),
@@ -133,7 +96,7 @@ func editHandler(conn *pgx.Conn) http.HandlerFunc {
 			return
 		}
 
-		if err := editForm.Execute(w, todo); err != nil {
+		if err := Edit(&todo).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

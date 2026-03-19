@@ -46,9 +46,7 @@ func createHandler(conn *pgx.Conn) http.HandlerFunc {
 
 func newHandler(_ *pgx.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		empty := &Todo{}
-
-		if err := NewForm(empty).Render(r.Context(), w); err != nil {
+		if err := NewForm().Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
