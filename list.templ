@@ -1,7 +1,19 @@
 package main
 import (
 "fmt"
+"time"
 )
+func todoDisplayTimestamp(ts time.Time) string {
+	return ts.Format("2006-01-02 15:04:05")
+}
+
+func todoDisplayDueDate(todo *Todo) string {
+	if todo == nil || todo.DueDate == nil {
+		return "N/A"
+	}
+	return todo.DueDate.Format("2006-01-02")
+}
+
 templ TodoList(todos []Todo) {
 	<button fx-action="/todos/new" fx-target="#output" fx-swap="innerHTML">
 		New todo
