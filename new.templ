@@ -1,0 +1,56 @@
+package main
+
+templ BackButton() {
+	<button
+		type="button"
+		fx-action="/todos/list"
+		fx-target="#output"
+		fx-swap="innerHTML">
+		Back
+	</button>
+}
+
+templ NewForm(todo *Todo) {
+	<h1>Create Todo</h1>
+	<form
+		action="/todos/create"
+		method="post"
+		fx-action="/todos/create"
+		fx-method="POST"
+		fx-target="#output"
+		fx-swap="innerHTML">
+		<label for="short">Short:</label><br/>
+		<input type="text" id="short" name="short" value={ todo.Short }/><br/>
+
+		<label for="description">Description:</label><br/>
+		<textarea id="description" name="description">{ todo.Description }</textarea><br/>
+
+		<label for="due_date">Due Date (YYYY-MM-DD):</label><br/>
+		if todo.DueDate != nil {
+			<input type="date" id="due_date" name="due_date" value={ todo.DueDate.Format("2006-01-02") }/><br/>
+		} else {
+			<input type="date" id="due_date" name="due_date"/><br/>
+		}
+
+		<label for="cost_of_delay">Cost of Delay:</label><br/>
+		<input
+			type="number"
+			id="cost_of_delay"
+			name="cost_of_delay"
+			min="-2"
+			max="2"
+			value={ templ.Sprintf("%d", todo.CostOfDelay) }/><br/>
+
+		<label for="effort">Effort:</label><br/>
+		<select id="effort" name="effort">
+			<option value="mins" selected?={ todo.Effort == "mins" }>mins</option>
+			<option value="hours" selected?={ todo.Effort == "" || todo.Effort == "hours" }>hours</option>
+			<option value="days" selected?={ todo.Effort == "days" }>days</option>
+			<option value="weeks" selected?={ todo.Effort == "weeks" }>weeks</option>
+			<option value="months" selected?={ todo.Effort == "months" }>months</option>
+		</select><br/><br/>
+
+		<input type="submit" value="Create"/>
+		@BackButton()
+	</form>
+}

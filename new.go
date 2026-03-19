@@ -1,7 +1,6 @@
 package main
 
 import (
-	"html/template"
 	"net/http"
 
 	"context"
@@ -9,44 +8,6 @@ import (
 
 	"github.com/jackc/pgx/v5"
 )
-
-const newFormHTML = `
-<h1>Create Todo</h1>
-<form
-  action="/todos/create"
-  method="post"
-  fx-action="/todos/create"
-  fx-method="POST"
-  fx-target="#output"
-  fx-swap="innerHTML">
-  <label for="short">Short:</label><br>
-  <input type="text" id="short" name="short"><br>
-
-  <label for="description">Description:</label><br>
-  <textarea id="description" name="description"></textarea><br>
-
-  <label for="due_date">Due Date (YYYY-MM-DD):</label><br>
-  <input type="date" id="due_date" name="due_date"><br>
-
-  <label for="cost_of_delay">Cost of Delay:</label><br>
-  <input type="number" id="cost_of_delay" name="cost_of_delay" min="-2" max="2"><br>
-
-  <label for="effort">Effort:</label><br>
-  <select id="effort" name="effort">
-    <option value="mins">mins</option>
-    <option value="hours" selected>hours</option>
-    <option value="days">days</option>
-    <option value="weeks">weeks</option>
-    <option value="months">months</option>
-  </select><br><br>
-
-  <input type="submit" value="Create">
-	  {{template "backButton"}}
-</form>
-`
-
-var newForm = template.Must(template.New("newForm").Parse(newFormHTML + backButton))
-		
 
 func createTodo(conn *pgx.Conn, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) (Todo, error) {
 	var t Todo
@@ -85,11 +46,9 @@ func createHandler(conn *pgx.Conn) http.HandlerFunc {
 
 func newHandler(_ *pgx.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// create an empty Todo so the template never receives a nil pointer
-		// (the template itself will also guard against nil values).
 		empty := &Todo{}
-	
-		if err := newForm.Execute(w, empty); err != nil {
+
+		if err := NewForm(empty).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
