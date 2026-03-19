@@ -77,8 +77,15 @@ func parseTodoForm(r *http.Request) (short string, description string, dueDate *
 }
 
 func main() {
+	databaseURL := strings.TrimSpace(os.Getenv("DATABASE_URL"))
+	if databaseURL == "" {
+		if _, writeErr := fmt.Fprintln(os.Stderr, "Unable to connect to database: DATABASE_URL is not set"); writeErr != nil {
+			log.Printf("unable to write database connection error to stderr: %v", writeErr)
+		}
+		os.Exit(1)
+	}
 
-	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	conn, err := pgx.Connect(context.Background(), databaseURL)
 	if err != nil {
 		if _, writeErr := fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err); writeErr != nil {
 			log.Printf("unable to write database connection error to stderr: %v", writeErr)
