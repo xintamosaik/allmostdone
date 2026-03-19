@@ -1,4 +1,10 @@
 package main
+import (
+    "fmt"
+)
+func todoUpdatePath(id int) string {
+	return fmt.Sprintf("/todos/%d/update", id)
+}
 
 templ Edit( todo *Todo ) {
 	<h1>Edit Todo</h1>

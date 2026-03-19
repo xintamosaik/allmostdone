@@ -2,50 +2,10 @@ package main
 
 import (
 	"context"
-	"html/template"
 	"net/http"
 
 	"github.com/jackc/pgx/v5"
 )
-
-const todoList = `
-<button fx-action="/todos/new" fx-target="#output" fx-swap="innerHTML">
-  New todo
-</button>
-<h1>Todo List</h1>
-<table>
-    <tr>
-        <th>ID</th>
-        <th>Short</th>
-        <th>Description</th>
-        <th>Due Date</th>
-        <th>Cost of Delay</th>
-        <th>Effort</th>
-        <th>Created At</th>
-        <th>Updated At</th>
-        <th>Actions</th>
-    </tr>
-    {{range .}}
-    <tr>
-        <td>{{.ID}}</td>
-        <td>{{.Short}}</td>
-        <td>{{.Description}}</td>
-        <td>{{if .DueDate}}{{.DueDate.Format "2006-01-02"}}{{else}}N/A{{end}}</td>
-        <td>{{.CostOfDelay}}</td>
-        <td>{{.Effort}}</td>
-        <td>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
-        <td>{{.UpdatedAt.Format "2006-01-02 15:04:05"}}</td>
-        <td>
-            <button fx-action="/todos/{{.ID}}/edit" fx-target="#output" fx-swap="innerHTML">
-                Edit
-            </button>
-        </td>
-    </tr>
-    {{end}}
-</table>
-`
-
-var todoListTemplate = template.Must(template.New("todoList").Parse(todoList))
 
 func getTodos(conn *pgx.Conn) ([]Todo, error) {
 	rows, err := conn.Query(context.Background(),
@@ -81,7 +41,7 @@ func listHandler(conn *pgx.Conn) http.HandlerFunc {
 			return
 		}
 
-		if err := todoListTemplate.Execute(w, todos); err != nil {
+		if err := TodoList(todos).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

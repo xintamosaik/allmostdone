@@ -1,0 +1,38 @@
+package main
+
+templ TodoList(todos []Todo) {
+	<button fx-action="/todos/new" fx-target="#output" fx-swap="innerHTML">
+		New todo
+	</button>
+	<h1>Todo List</h1>
+	<table>
+		<tr>
+			<th>ID</th>
+			<th>Short</th>
+			<th>Description</th>
+			<th>Due Date</th>
+			<th>Cost of Delay</th>
+			<th>Effort</th>
+			<th>Created At</th>
+			<th>Updated At</th>
+			<th>Actions</th>
+		</tr>
+		for _, todo := range todos {
+			<tr>
+				<td>{ todo.ID }</td>
+				<td>{ todo.Short }</td>
+				<td>{ todo.Description }</td>
+				<td>{ todoDisplayDueDate(&todo) }</td>
+				<td>{ todo.CostOfDelay }</td>
+				<td>{ todo.Effort }</td>
+				<td>{ todoDisplayTimestamp(todo.CreatedAt) }</td>
+				<td>{ todoDisplayTimestamp(todo.UpdatedAt) }</td>
+				<td>
+					<button fx-action={ todoEditPath(todo.ID) } fx-target="#output" fx-swap="innerHTML">
+						Edit
+					</button>
+				</td>
+			</tr>
+		}
+	</table>
+}
