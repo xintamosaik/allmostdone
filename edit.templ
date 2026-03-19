@@ -2,16 +2,13 @@ package main
 import (
     "fmt"
 )
-func todoUpdatePath(id int) string {
-	return fmt.Sprintf("/todos/%d/update", id)
-}
 
 templ Edit( todo *Todo ) {
 	<h1>Edit Todo</h1>
 	<form
-		action={ todoUpdatePath(todo.ID) }
+		action={ fmt.Sprintf("/todos/%d/update", todo.ID) }
 		method="post"
-		fx-action={ todoUpdatePath(todo.ID) }
+		fx-action={ fmt.Sprintf("/todos/%d/update", todo.ID) }
 		fx-method="POST"
 		fx-target="#output"
 		fx-swap="innerHTML">

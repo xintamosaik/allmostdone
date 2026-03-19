@@ -15,9 +15,7 @@ func todoCostOfDelayValue(todo *Todo) string {
 	if todo == nil {
 		return ""
 	}
-	if todo.ID == 0 && todo.Short == "" && todo.Description == "" && todo.DueDate == nil && todo.CostOfDelay == 0 && (todo.Effort == "" || todo.Effort == "hours") {
-		return ""
-	}
+
 	return strconv.FormatInt(int64(todo.CostOfDelay), 10)
 }
 

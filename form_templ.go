@@ -23,9 +23,7 @@ func todoCostOfDelayValue(todo *Todo) string {
 	if todo == nil {
 		return ""
 	}
-	if todo.ID == 0 && todo.Short == "" && todo.Description == "" && todo.DueDate == nil && todo.CostOfDelay == 0 && (todo.Effort == "" || todo.Effort == "hours") {
-		return ""
-	}
+
 	return strconv.FormatInt(int64(todo.CostOfDelay), 10)
 }
 
@@ -86,7 +84,7 @@ func ShortInput(short string) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(short)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `form.templ`, Line: 37, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `form.templ`, Line: 35, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -128,7 +126,7 @@ func DescriptionInput(description string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(description)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `form.templ`, Line: 42, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `form.templ`, Line: 40, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -170,7 +168,7 @@ func DueDateInput(dueDate string) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(dueDate)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `form.templ`, Line: 47, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `form.templ`, Line: 45, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -212,7 +210,7 @@ func CostOfDelayInput(costOfDelay string) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(costOfDelay)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `form.templ`, Line: 58, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `form.templ`, Line: 56, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
