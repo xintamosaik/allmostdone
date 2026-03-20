@@ -101,8 +101,12 @@ func (a *App) editHandler() http.HandlerFunc {
 			return
 		}
 
-		if err := EditTodoForm(&todo).Render(r.Context(), w); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		a.renderEditTodoForm(w, r, todo)
+	}
+}
+
+func (a *App) renderEditTodoForm(w http.ResponseWriter, r *http.Request, todo Todo) {
+	if err := EditTodoForm(&todo).Render(r.Context(), w); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

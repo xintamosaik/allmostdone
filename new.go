@@ -46,8 +46,12 @@ func (a *App) createHandler() http.HandlerFunc {
 // newHandler serves the form to create a new item. Path: /todos/new
 func (a *App) newHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := NewTodoForm().Render(r.Context(), w); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		a.renderNewTodoForm(w, r)
+	}
+}
+
+func (a *App) renderNewTodoForm(w http.ResponseWriter, r *http.Request) {
+	if err := NewTodoForm().Render(r.Context(), w); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
