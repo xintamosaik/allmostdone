@@ -6,13 +6,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func createTodo(conn *pgx.Conn, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) (Todo, error) {
+func createTodo(db *pgxpool.Pool, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) (Todo, error) {
 	var t Todo
 
-	err := conn.QueryRow(
+	err := db.QueryRow(
 		context.Background(),
 		`INSERT INTO todos (short, description, due_date, cost_of_delay, effort)
          VALUES ($1, $2, $3, $4, $5)
@@ -27,24 +27,24 @@ func createTodo(conn *pgx.Conn, short string, description string, dueDate *time.
 	return t, err
 }
 
-func createHandler(conn *pgx.Conn) http.HandlerFunc {
+func (a App) createHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		short, description, dueDate, costOfDelay, effort, err := parseTodoForm(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		_, err = createTodo(conn, short, description, dueDate, costOfDelay, effort)
+		_, err = createTodo(a.DB, short, description, dueDate, costOfDelay, effort)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		// after create show updated list
-		listHandler(conn)(w, r)
+		a.listHandler()(w, r)
 	}
 }
 
-func newHandler(_ *pgx.Conn) http.HandlerFunc {
+func (_ App) newHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := NewForm().Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

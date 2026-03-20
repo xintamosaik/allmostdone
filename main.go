@@ -10,7 +10,7 @@ import (
 
 	"time"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Todo struct {
@@ -24,6 +24,10 @@ type Todo struct {
 	UpdatedAt   time.Time
 }
 
+type App struct {
+	DB *pgxpool.Pool
+}
+
 func main() {
 	databaseURL := strings.TrimSpace(os.Getenv("DATABASE_URL"))
 	if databaseURL == "" {
@@ -33,33 +37,31 @@ func main() {
 		os.Exit(1)
 	}
 
-	conn, err := pgx.Connect(context.Background(), databaseURL)
+	dbPool, err := pgxpool.New(context.Background(), databaseURL)
 	if err != nil {
 		if _, writeErr := fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err); writeErr != nil {
 			log.Printf("unable to write database connection error to stderr: %v", writeErr)
 		}
 		os.Exit(1)
 	}
-	defer func() {
-		if closeErr := conn.Close(context.Background()); closeErr != nil {
-			log.Printf("unable to close database connection: %v", closeErr)
-		}
-	}()
+	defer dbPool.Close()
 
-	var db string
-	err = conn.QueryRow(context.Background(), "select current_database()").Scan(&db)
+	var currentDB string
+	err = dbPool.QueryRow(context.Background(), "select current_database()").Scan(&currentDB)
 	if err != nil {
 		panic(err)
 	}
 
+	app := App{DB: dbPool}
+
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 
-	http.HandleFunc("GET /todos/list", listHandler(conn))
-	http.HandleFunc("GET /todos/new", newHandler(conn))
-	http.HandleFunc("POST /todos/create", createHandler(conn))
-	http.HandleFunc("GET /todos/{id}/edit", editHandler(conn))
-	http.HandleFunc("POST /todos/{id}/update", updateHandler(conn))
+	http.HandleFunc("GET /todos/list", app.listHandler())
+	http.HandleFunc("GET /todos/new", app.newHandler())
+	http.HandleFunc("POST /todos/create", app.createHandler())
+	http.HandleFunc("GET /todos/{id}/edit", app.editHandler())
+	http.HandleFunc("POST /todos/{id}/update", app.updateHandler())
 
 	fmt.Println("Listening on :3000")
 	if err := http.ListenAndServe(":3000", nil); err != nil {

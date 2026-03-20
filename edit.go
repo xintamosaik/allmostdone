@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func updateTodo(conn *pgx.Conn, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
-	tag, err := conn.Exec(
+func updateTodo(db *pgxpool.Pool, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
+	tag, err := db.Exec(
 		context.Background(),
 		`UPDATE todos
          SET short=$1,
@@ -36,7 +37,7 @@ func updateTodo(conn *pgx.Conn, id int, short string, description string, dueDat
 	}
 	return nil
 }
-func updateHandler(conn *pgx.Conn) http.HandlerFunc {
+func (a App) updateHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil {
@@ -50,7 +51,7 @@ func updateHandler(conn *pgx.Conn) http.HandlerFunc {
 			return
 		}
 
-		if err = updateTodo(conn, id, short, description, dueDate, costOfDelay, effort); err != nil {
+		if err = updateTodo(a.DB, id, short, description, dueDate, costOfDelay, effort); err != nil {
 			if err == pgx.ErrNoRows {
 				http.NotFound(w, r)
 				return
@@ -59,14 +60,14 @@ func updateHandler(conn *pgx.Conn) http.HandlerFunc {
 			return
 		}
 
-		listHandler(conn)(w, r)
+		a.listHandler()(w, r)
 	}
 }
 
-func getTodo(conn *pgx.Conn, id int) (Todo, error) {
+func getTodo(db *pgxpool.Pool, id int) (Todo, error) {
 	var t Todo
 
-	err := conn.QueryRow(
+	err := db.QueryRow(
 		context.Background(),
 		`SELECT id, short, description, due_date, cost_of_delay, effort, created_at, updated_at
          FROM todos
@@ -78,7 +79,7 @@ func getTodo(conn *pgx.Conn, id int) (Todo, error) {
 }
 
 // editHandler serves the form to edit an existing todo item. Path: /todos/{id}/edit
-func editHandler(conn *pgx.Conn) http.HandlerFunc {
+func (a App) editHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil {
@@ -86,7 +87,7 @@ func editHandler(conn *pgx.Conn) http.HandlerFunc {
 			return
 		}
 
-		todo, err := getTodo(conn, id)
+		todo, err := getTodo(a.DB, id)
 		if err != nil {
 			if err == pgx.ErrNoRows {
 				http.NotFound(w, r)
