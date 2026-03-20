@@ -44,7 +44,7 @@ func (a *App) createHandler() http.HandlerFunc {
 
 func (_ *App) newHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := NewForm().Render(r.Context(), w); err != nil {
+		if err := NewTodoForm().Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

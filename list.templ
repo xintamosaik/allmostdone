@@ -14,7 +14,7 @@ func todoDisplayDueDate(todo *Todo) string {
 	return todo.DueDate.Format("2006-01-02")
 }
 
-templ TodoList(todos []Todo) {
+templ TodoListPage(todos []Todo) {
 	<button fx-action="/todos/new" fx-target="#output" fx-swap="innerHTML">
 		New todo
 	</button>

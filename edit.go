@@ -95,7 +95,7 @@ func (a *App) editHandler() http.HandlerFunc {
 			return
 		}
 
-		if err := Edit(&todo).Render(r.Context(), w); err != nil {
+		if err := EditTodoForm(&todo).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

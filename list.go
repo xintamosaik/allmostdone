@@ -46,7 +46,7 @@ func (a *App) renderTodoList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := TodoList(todos).Render(r.Context(), w); err != nil {
+	if err := TodoListPage(todos).Render(r.Context(), w); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

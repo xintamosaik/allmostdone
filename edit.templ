@@ -3,7 +3,7 @@ import (
     "fmt"
 )
 
-templ Edit( todo *Todo ) {
+templ EditTodoForm( todo *Todo ) {
 	<h1>Edit Todo</h1>
 	<form
 		action={ fmt.Sprintf("/todos/%d/update", todo.ID) }
