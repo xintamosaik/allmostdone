@@ -1,7 +1,10 @@
 package main
 
-templ NewTodoForm() {
+templ NewTodoForm(data TodoFormData) {
 	<h1>New Todo</h1>
+	if data.Error != "" {
+		<p class="error">{ data.Error }</p>
+	}
     <form
         action="/todos/create"
         method="post"
@@ -9,11 +12,11 @@ templ NewTodoForm() {
         fx-method="POST"
         fx-target="#output"
         fx-swap="innerHTML">
-        @ShortInput("")
-        @DescriptionInput("")
-        @DueDateInput("")
-        @CostOfDelayInput("")
-        @EffortInput("")
+        @ShortInput(data.Input.Short)
+        @DescriptionInput(data.Input.Description)
+        @DueDateInput(data.DueDateValue())
+        @CostOfDelayInput(data.CostOfDelayValue())
+        @EffortInput(data.Input.Effort)
         <input type="submit" value="Create"/>
         @TodoBackButton()
     </form>

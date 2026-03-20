@@ -30,7 +30,13 @@ func (a *App) createHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		in, err := parseTodoForm(r)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			a.renderNewTodoForm(w, r, TodoFormData{
+				Input:          in,
+				Error:          err.Error(),
+				DueDateRaw:     r.FormValue("due_date"),
+				CostOfDelayRaw: r.FormValue("cost_of_delay"),
+			})
 			return
 		}
 		_, err = createTodo(r.Context(), a.DB, in)
@@ -46,12 +52,12 @@ func (a *App) createHandler() http.HandlerFunc {
 // newHandler serves the form to create a new item. Path: /todos/new
 func (a *App) newHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		a.renderNewTodoForm(w, r)
+		a.renderNewTodoForm(w, r, TodoFormData{})
 	}
 }
 
-func (a *App) renderNewTodoForm(w http.ResponseWriter, r *http.Request) {
-	if err := NewTodoForm().Render(r.Context(), w); err != nil {
+func (a *App) renderNewTodoForm(w http.ResponseWriter, r *http.Request, data TodoFormData) {
+	if err := NewTodoForm(data).Render(r.Context(), w); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

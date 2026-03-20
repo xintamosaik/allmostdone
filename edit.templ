@@ -3,20 +3,23 @@ import (
     "fmt"
 )
 
-templ EditTodoForm( todo *Todo ) {
+templ EditTodoForm(todoID int, data TodoFormData) {
 	<h1>Edit Todo</h1>
+	if data.Error != "" {
+		<p class="error">{ data.Error }</p>
+	}
 	<form
-		action={ fmt.Sprintf("/todos/%d/update", todo.ID) }
+		action={ fmt.Sprintf("/todos/%d/update", todoID) }
 		method="post"
-		fx-action={ fmt.Sprintf("/todos/%d/update", todo.ID) }
+		fx-action={ fmt.Sprintf("/todos/%d/update", todoID) }
 		fx-method="POST"
 		fx-target="#output"
 		fx-swap="innerHTML">
-		@ShortInput(todo.Short)
-		@DescriptionInput(todo.Description)
-		@DueDateInput(todoDueDateValue(todo))
-		@CostOfDelayInput(todoCostOfDelayValue(todo))
-		@EffortInput(todo.Effort)
+		@ShortInput(data.Input.Short)
+		@DescriptionInput(data.Input.Description)
+		@DueDateInput(data.DueDateValue())
+		@CostOfDelayInput(data.CostOfDelayValue())
+		@EffortInput(data.Input.Effort)
 		<input type="submit" value="Update"/>
 		@TodoBackButton()
 	</form>

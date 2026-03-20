@@ -44,3 +44,8 @@ th, td {
     padding: 0.5em;
     text-align: left;
 }
+
+.error {
+    color: #b00020;
+    margin: 0.5em 0 1em;
+}

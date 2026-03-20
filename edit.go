@@ -51,7 +51,13 @@ func (a *App) updateHandler() http.HandlerFunc {
 
 		in, err := parseTodoForm(r)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			a.renderEditTodoForm(w, r, id, TodoFormData{
+				Input:          in,
+				Error:          err.Error(),
+				DueDateRaw:     r.FormValue("due_date"),
+				CostOfDelayRaw: r.FormValue("cost_of_delay"),
+			})
 			return
 		}
 
@@ -101,12 +107,22 @@ func (a *App) editHandler() http.HandlerFunc {
 			return
 		}
 
-		a.renderEditTodoForm(w, r, todo)
+		a.renderEditTodoForm(w, r, todo.ID, TodoFormData{
+			Input: TodoInput{
+				Short:       todo.Short,
+				Description: todo.Description,
+				DueDate:     todo.DueDate,
+				CostOfDelay: todo.CostOfDelay,
+				Effort:      todo.Effort,
+			},
+			DueDateRaw:     todoInputDueDateValue(TodoInput{DueDate: todo.DueDate}),
+			CostOfDelayRaw: todoInputCostOfDelayValue(TodoInput{CostOfDelay: todo.CostOfDelay}),
+		})
 	}
 }
 
-func (a *App) renderEditTodoForm(w http.ResponseWriter, r *http.Request, todo Todo) {
-	if err := EditTodoForm(&todo).Render(r.Context(), w); err != nil {
+func (a *App) renderEditTodoForm(w http.ResponseWriter, r *http.Request, todoID int, data TodoFormData) {
+	if err := EditTodoForm(todoID, data).Render(r.Context(), w); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

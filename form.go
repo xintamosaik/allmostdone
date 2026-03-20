@@ -16,6 +16,38 @@ type TodoInput struct {
 	Effort      string
 }
 
+type TodoFormData struct {
+	Input          TodoInput
+	Error          string
+	DueDateRaw     string
+	CostOfDelayRaw string
+}
+
+func (d TodoFormData) DueDateValue() string {
+	if d.DueDateRaw != "" {
+		return d.DueDateRaw
+	}
+	return todoInputDueDateValue(d.Input)
+}
+
+func (d TodoFormData) CostOfDelayValue() string {
+	if d.CostOfDelayRaw != "" {
+		return d.CostOfDelayRaw
+	}
+	return ""
+}
+
+func todoInputDueDateValue(in TodoInput) string {
+	if in.DueDate == nil {
+		return ""
+	}
+	return in.DueDate.Format("2006-01-02")
+}
+
+func todoInputCostOfDelayValue(in TodoInput) string {
+	return strconv.FormatInt(int64(in.CostOfDelay), 10)
+}
+
 // helper to parse common form fields from a request
 func parseTodoForm(r *http.Request) (in TodoInput, err error) {
 	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
