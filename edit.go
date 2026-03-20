@@ -9,6 +9,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+func todoIDFromRequest(r *http.Request) (int, error) {
+	return strconv.Atoi(r.PathValue("id"))
+}
+
 func updateTodo(ctx context.Context, db *pgxpool.Pool, id int, in TodoInput) error {
 	tag, err := db.Exec(
 		ctx,
@@ -39,7 +43,7 @@ func updateTodo(ctx context.Context, db *pgxpool.Pool, id int, in TodoInput) err
 // updateHandler handles updates to an existing item. Path: /todos/{id}/update
 func (a *App) updateHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := strconv.Atoi(r.PathValue("id"))
+		id, err := todoIDFromRequest(r)
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -81,7 +85,7 @@ func getTodo(ctx context.Context, db *pgxpool.Pool, id int) (Todo, error) {
 // editHandler serves the form to edit an existing todo item. Path: /todos/{id}/edit
 func (a *App) editHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := strconv.Atoi(r.PathValue("id"))
+		id, err := todoIDFromRequest(r)
 		if err != nil {
 			http.NotFound(w, r)
 			return
