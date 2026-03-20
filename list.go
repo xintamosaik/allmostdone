@@ -33,6 +33,7 @@ func getTodos(ctx context.Context, db *pgxpool.Pool) ([]Todo, error) {
 	return todos, nil
 }
 
+// listHandler serves the list page. Path: /todos/list
 func (a *App) listHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		a.renderTodoList(w, r)

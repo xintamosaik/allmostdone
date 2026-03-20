@@ -25,6 +25,7 @@ func createTodo(ctx context.Context, db *pgxpool.Pool, in TodoInput) (Todo, erro
 	return t, err
 }
 
+// createHandler handles creation requests. Path: /todos/create
 func (a *App) createHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		in, err := parseTodoForm(r)
@@ -42,6 +43,7 @@ func (a *App) createHandler() http.HandlerFunc {
 	}
 }
 
+// newHandler serves the form to create a new item. Path: /todos/new
 func (a *App) newHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := NewTodoForm().Render(r.Context(), w); err != nil {

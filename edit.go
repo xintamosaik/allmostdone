@@ -35,6 +35,8 @@ func updateTodo(ctx context.Context, db *pgxpool.Pool, id int, in TodoInput) err
 	}
 	return nil
 }
+
+// updateHandler handles updates to an existing item. Path: /todos/{id}/update
 func (a *App) updateHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(r.PathValue("id"))
