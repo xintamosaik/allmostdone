@@ -25,7 +25,7 @@ func createTodo(ctx context.Context, db *pgxpool.Pool, in TodoInput) (Todo, erro
 	return t, err
 }
 
-func (a App) createHandler() http.HandlerFunc {
+func (a *App) createHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		in, err := parseTodoForm(r)
 		if err != nil {
@@ -42,7 +42,7 @@ func (a App) createHandler() http.HandlerFunc {
 	}
 }
 
-func (_ App) newHandler() http.HandlerFunc {
+func (_ *App) newHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := NewForm().Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

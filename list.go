@@ -33,7 +33,7 @@ func getTodos(ctx context.Context, db *pgxpool.Pool) ([]Todo, error) {
 	return todos, nil
 }
 
-func (a App) listHandler() http.HandlerFunc {
+func (a *App) listHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		todos, err := getTodos(r.Context(), a.DB)
 		if err != nil {

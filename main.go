@@ -46,13 +46,7 @@ func main() {
 	}
 	defer dbPool.Close()
 
-	var currentDB string
-	err = dbPool.QueryRow(context.Background(), "select current_database()").Scan(&currentDB)
-	if err != nil {
-		panic(err)
-	}
-
-	app := App{DB: dbPool}
+	app := &App{DB: dbPool}
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)

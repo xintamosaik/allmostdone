@@ -35,7 +35,7 @@ func updateTodo(ctx context.Context, db *pgxpool.Pool, id int, in TodoInput) err
 	}
 	return nil
 }
-func (a App) updateHandler() http.HandlerFunc {
+func (a *App) updateHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil {
@@ -77,7 +77,7 @@ func getTodo(ctx context.Context, db *pgxpool.Pool, id int) (Todo, error) {
 }
 
 // editHandler serves the form to edit an existing todo item. Path: /todos/{id}/edit
-func (a App) editHandler() http.HandlerFunc {
+func (a *App) editHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil {
