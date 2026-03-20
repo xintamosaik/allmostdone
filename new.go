@@ -42,7 +42,7 @@ func (a *App) createHandler() http.HandlerFunc {
 	}
 }
 
-func (_ *App) newHandler() http.HandlerFunc {
+func (a *App) newHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := NewTodoForm().Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
