@@ -27,10 +27,15 @@ func parseTodoForm(r *http.Request) (in TodoInput, err error) {
 		return
 	}
 
-	in.Short = r.FormValue("short")
-	in.Description = r.FormValue("description")
+	in.Short = strings.TrimSpace(r.FormValue("short"))
+	if in.Short == "" {
+		err = fmt.Errorf("short is required")
+		return
+	}
 
-	dateStr := r.FormValue("due_date")
+	in.Description = strings.TrimSpace(r.FormValue("description"))
+
+	dateStr := strings.TrimSpace(r.FormValue("due_date"))
 	if dateStr != "" {
 		var dt time.Time
 		dt, err = time.Parse("2006-01-02", dateStr)
@@ -41,7 +46,7 @@ func parseTodoForm(r *http.Request) (in TodoInput, err error) {
 		in.DueDate = &dt
 	}
 
-	if codStr := r.FormValue("cost_of_delay"); codStr != "" {
+	if codStr := strings.TrimSpace(r.FormValue("cost_of_delay")); codStr != "" {
 		var tmp int
 		tmp, err = strconv.Atoi(codStr)
 		if err != nil {
@@ -54,7 +59,7 @@ func parseTodoForm(r *http.Request) (in TodoInput, err error) {
 		in.CostOfDelay = int16(tmp)
 	}
 
-	in.Effort = r.FormValue("effort")
+	in.Effort = strings.TrimSpace(r.FormValue("effort"))
 	switch in.Effort {
 	case "mins", "hours", "days", "weeks", "months":
 	case "":
