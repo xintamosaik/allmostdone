@@ -7,8 +7,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func getTodos(db *pgxpool.Pool) ([]Todo, error) {
-	rows, err := db.Query(context.Background(),
+func getTodos(ctx context.Context, db *pgxpool.Pool) ([]Todo, error) {
+	rows, err := db.Query(ctx,
 		`SELECT id, short, description, due_date, cost_of_delay, effort, created_at, updated_at
          FROM todos
          ORDER BY id`)
@@ -35,7 +35,7 @@ func getTodos(db *pgxpool.Pool) ([]Todo, error) {
 
 func (a App) listHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		todos, err := getTodos(a.DB)
+		todos, err := getTodos(r.Context(), a.DB)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

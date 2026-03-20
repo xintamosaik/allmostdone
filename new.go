@@ -1,19 +1,18 @@
 package main
 
 import (
-	"net/http"
-
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func createTodo(db *pgxpool.Pool, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) (Todo, error) {
+func createTodo(ctx context.Context, db *pgxpool.Pool, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) (Todo, error) {
 	var t Todo
 
 	err := db.QueryRow(
-		context.Background(),
+		ctx,
 		`INSERT INTO todos (short, description, due_date, cost_of_delay, effort)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING id, short, description, due_date, cost_of_delay, effort, created_at, updated_at`,
@@ -34,7 +33,7 @@ func (a App) createHandler() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		_, err = createTodo(a.DB, short, description, dueDate, costOfDelay, effort)
+		_, err = createTodo(r.Context(), a.DB, short, description, dueDate, costOfDelay, effort)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

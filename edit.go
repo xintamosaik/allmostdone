@@ -11,9 +11,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func updateTodo(db *pgxpool.Pool, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
+func updateTodo(ctx context.Context, db *pgxpool.Pool, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
 	tag, err := db.Exec(
-		context.Background(),
+		ctx,
 		`UPDATE todos
          SET short=$1,
              description=$2,
@@ -51,7 +51,7 @@ func (a App) updateHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = updateTodo(a.DB, id, short, description, dueDate, costOfDelay, effort); err != nil {
+		if err = updateTodo(r.Context(), a.DB, id, short, description, dueDate, costOfDelay, effort); err != nil {
 			if err == pgx.ErrNoRows {
 				http.NotFound(w, r)
 				return
@@ -64,11 +64,11 @@ func (a App) updateHandler() http.HandlerFunc {
 	}
 }
 
-func getTodo(db *pgxpool.Pool, id int) (Todo, error) {
+func getTodo(ctx context.Context, db *pgxpool.Pool, id int) (Todo, error) {
 	var t Todo
 
 	err := db.QueryRow(
-		context.Background(),
+		ctx,
 		`SELECT id, short, description, due_date, cost_of_delay, effort, created_at, updated_at
          FROM todos
          WHERE id=$1`,
@@ -87,7 +87,7 @@ func (a App) editHandler() http.HandlerFunc {
 			return
 		}
 
-		todo, err := getTodo(a.DB, id)
+		todo, err := getTodo(r.Context(), a.DB, id)
 		if err != nil {
 			if err == pgx.ErrNoRows {
 				http.NotFound(w, r)
