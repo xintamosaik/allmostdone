@@ -35,14 +35,18 @@ func getTodos(ctx context.Context, db *pgxpool.Pool) ([]Todo, error) {
 
 func (a *App) listHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		todos, err := getTodos(r.Context(), a.DB)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		a.renderTodoList(w, r)
+	}
+}
 
-		if err := TodoList(todos).Render(r.Context(), w); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+func (a *App) renderTodoList(w http.ResponseWriter, r *http.Request) {
+	todos, err := getTodos(r.Context(), a.DB)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := TodoList(todos).Render(r.Context(), w); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

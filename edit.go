@@ -58,7 +58,7 @@ func (a *App) updateHandler() http.HandlerFunc {
 			return
 		}
 
-		a.listHandler()(w, r)
+		a.renderTodoList(w, r)
 	}
 }
 

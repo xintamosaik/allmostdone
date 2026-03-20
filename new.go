@@ -38,7 +38,7 @@ func (a *App) createHandler() http.HandlerFunc {
 			return
 		}
 		// after create show updated list
-		a.listHandler()(w, r)
+		a.renderTodoList(w, r)
 	}
 }
 
