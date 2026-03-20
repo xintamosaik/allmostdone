@@ -50,6 +50,7 @@ func parseTodoForm(r *http.Request) (in TodoInput, err error) {
 		var tmp int
 		tmp, err = strconv.Atoi(codStr)
 		if err != nil {
+			err = fmt.Errorf("cost_of_delay must be a number")
 			return
 		}
 		if tmp < -2 || tmp > 2 {
