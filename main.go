@@ -56,6 +56,7 @@ func main() {
 	http.HandleFunc("POST /todos/create", app.createHandler())
 	http.HandleFunc("GET /todos/{id}/edit", app.editHandler())
 	http.HandleFunc("POST /todos/{id}/update", app.updateHandler())
+	http.HandleFunc("POST /todos/{id}/delete", app.deleteHandler())
 
 	fmt.Println("Listening on :3000")
 	if err := http.ListenAndServe(":3000", nil); err != nil {

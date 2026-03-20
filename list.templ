@@ -48,6 +48,16 @@ templ TodoListPage(todos []Todo) {
 					fx-swap="innerHTML">
 						Edit
 					</button>
+					<form
+					action={ fmt.Sprintf("/todos/%d/delete", todo.ID) }
+					method="post"
+					fx-action={ fmt.Sprintf("/todos/%d/delete", todo.ID) }
+					fx-method="POST"
+					fx-target="#output"
+					fx-swap="innerHTML"
+					style="display:inline">
+						<input type="submit" value="Delete"/>
+					</form>
 				</td>
 			</tr>
 		}
