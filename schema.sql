@@ -20,6 +20,6 @@ CREATE TABLE todos (
 
     effort effort DEFAULT 'hours',
 
-    created_at TIMESTAMP DEFAULT now(),
-    updated_at TIMESTAMP DEFAULT now()
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
