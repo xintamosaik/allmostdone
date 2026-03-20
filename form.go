@@ -8,8 +8,16 @@ import (
 	"time"
 )
 
+type TodoInput struct {
+	Short       string
+	Description string
+	DueDate     *time.Time
+	CostOfDelay int16
+	Effort      string
+}
+
 // helper to parse common form fields from a request
-func parseTodoForm(r *http.Request) (short string, description string, dueDate *time.Time, costOfDelay int16, effort string, err error) {
+func parseTodoForm(r *http.Request) (in TodoInput, err error) {
 	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
 		err = r.ParseMultipartForm(1 << 20)
 	} else {
@@ -19,8 +27,8 @@ func parseTodoForm(r *http.Request) (short string, description string, dueDate *
 		return
 	}
 
-	short = r.FormValue("short")
-	description = r.FormValue("description")
+	in.Short = r.FormValue("short")
+	in.Description = r.FormValue("description")
 
 	dateStr := r.FormValue("due_date")
 	if dateStr != "" {
@@ -30,7 +38,7 @@ func parseTodoForm(r *http.Request) (short string, description string, dueDate *
 			err = fmt.Errorf("due_date must be in YYYY-MM-DD format")
 			return
 		}
-		dueDate = &dt
+		in.DueDate = &dt
 	}
 
 	if codStr := r.FormValue("cost_of_delay"); codStr != "" {
@@ -43,14 +51,14 @@ func parseTodoForm(r *http.Request) (short string, description string, dueDate *
 			err = fmt.Errorf("cost_of_delay must be between -2 and 2")
 			return
 		}
-		costOfDelay = int16(tmp)
+		in.CostOfDelay = int16(tmp)
 	}
 
-	effort = r.FormValue("effort")
-	switch effort {
+	in.Effort = r.FormValue("effort")
+	switch in.Effort {
 	case "mins", "hours", "days", "weeks", "months":
 	case "":
-		effort = "hours"
+		in.Effort = "hours"
 	default:
 		err = fmt.Errorf("invalid effort")
 		return

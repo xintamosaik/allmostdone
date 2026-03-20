@@ -5,13 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"time"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func updateTodo(ctx context.Context, db *pgxpool.Pool, id int, short string, description string, dueDate *time.Time, costOfDelay int16, effort string) error {
+func updateTodo(ctx context.Context, db *pgxpool.Pool, id int, in TodoInput) error {
 	tag, err := db.Exec(
 		ctx,
 		`UPDATE todos
@@ -22,11 +20,11 @@ func updateTodo(ctx context.Context, db *pgxpool.Pool, id int, short string, des
              effort=$5,
              updated_at=now()
          WHERE id=$6`,
-		short,
-		description,
-		dueDate,
-		costOfDelay,
-		effort,
+		in.Short,
+		in.Description,
+		in.DueDate,
+		in.CostOfDelay,
+		in.Effort,
 		id,
 	)
 	if err != nil {
@@ -45,13 +43,13 @@ func (a App) updateHandler() http.HandlerFunc {
 			return
 		}
 
-		short, description, dueDate, costOfDelay, effort, err := parseTodoForm(r)
+		in, err := parseTodoForm(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		if err = updateTodo(r.Context(), a.DB, id, short, description, dueDate, costOfDelay, effort); err != nil {
+		if err = updateTodo(r.Context(), a.DB, id, in); err != nil {
 			if err == pgx.ErrNoRows {
 				http.NotFound(w, r)
 				return
