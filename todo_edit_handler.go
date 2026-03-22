@@ -20,6 +20,8 @@ type TodoPartialUpdate struct {
 	DueDateSet     bool
 	CostOfDelay    int16
 	CostOfDelaySet bool
+	Effort         string
+	EffortSet      bool
 }
 
 func parseInlineForm(r *http.Request) error {
@@ -33,6 +35,15 @@ func todoIDFromRequest(r *http.Request) (int, error) {
 	return strconv.Atoi(r.PathValue("id"))
 }
 
+func isAllowedEffort(effort string) bool {
+	switch effort {
+	case "mins", "hours", "days", "weeks", "months":
+		return true
+	default:
+		return false
+	}
+}
+
 func updateTodoPartial(ctx context.Context, db *pgxpool.Pool, id int, patch TodoPartialUpdate) error {
 	tag, err := db.Exec(
 		ctx,
@@ -41,8 +52,9 @@ func updateTodoPartial(ctx context.Context, db *pgxpool.Pool, id int, patch Todo
              description = CASE WHEN $3 THEN $4 ELSE description END,
              due_date = CASE WHEN $5 THEN $6 ELSE due_date END,
              cost_of_delay = CASE WHEN $7 THEN $8 ELSE cost_of_delay END,
+             effort = CASE WHEN $9 THEN $10 ELSE effort END,
              updated_at=now()
-         WHERE id=$9`,
+         WHERE id=$11`,
 		patch.ShortSet,
 		patch.Short,
 		patch.DescriptionSet,
@@ -51,6 +63,8 @@ func updateTodoPartial(ctx context.Context, db *pgxpool.Pool, id int, patch Todo
 		patch.DueDate,
 		patch.CostOfDelaySet,
 		patch.CostOfDelay,
+		patch.EffortSet,
+		patch.Effort,
 		id,
 	)
 	if err != nil {
@@ -291,6 +305,44 @@ func (a *App) updateCostOfDelayHandler() http.HandlerFunc {
 	}
 }
 
+// updateEffortHandler handles inline updates to the effort field. Path: /todos/{id}/update/effort
+func (a *App) updateEffortHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := todoIDFromRequest(r)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		if err = parseInlineForm(r); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		effort := strings.TrimSpace(r.FormValue("effort"))
+		if !isAllowedEffort(effort) {
+			http.Error(w, "invalid effort", http.StatusBadRequest)
+			return
+		}
+
+		if err = updateTodoPartial(r.Context(), a.DB, id, TodoPartialUpdate{
+			Effort:    effort,
+			EffortSet: true,
+		}); err != nil {
+			if err == pgx.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err = EditEffort(id, effort).Render(r.Context(), w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
 // editShortHandler swaps the short field into input mode. Path: /todos/{id}/edit/short
 func (a *App) editShortHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -386,6 +438,31 @@ func (a *App) editCostOfDelayHandler() http.HandlerFunc {
 		}
 
 		if err = InputCostOfDelay(todo.ID, todo.CostOfDelay).Render(r.Context(), w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+// editEffortHandler swaps the effort field into input mode. Path: /todos/{id}/edit/effort
+func (a *App) editEffortHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := todoIDFromRequest(r)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		todo, err := getTodo(r.Context(), a.DB, id)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err = InputEffort(todo.ID, todo.Effort).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

@@ -72,6 +72,8 @@ func main() {
 	http.HandleFunc("POST /todos/{id}/update/due-date", app.updateDueDateHandler())
 	http.HandleFunc("POST /todos/{id}/edit/cost-of-delay", app.editCostOfDelayHandler())
 	http.HandleFunc("POST /todos/{id}/update/cost-of-delay", app.updateCostOfDelayHandler())
+	http.HandleFunc("POST /todos/{id}/edit/effort", app.editEffortHandler())
+	http.HandleFunc("POST /todos/{id}/update/effort", app.updateEffortHandler())
 	http.HandleFunc("POST /todos/{id}/delete", app.deleteHandler())
 
 	fmt.Println("Listening on :3000")

@@ -95,14 +95,35 @@ templ InputCostOfDelay(id ID, costOfDelay CostOfDelay) {
 		fx-method="POST"
 		fx-target={ fmt.Sprintf("#cost-of-delay-%d", id) }
 		fx-swap="innerHTML">
-		<input
-			type="number"
-			name="cost_of_delay"
-			min="-2"
-			max="2"
-			step="1"
-			value={ fmt.Sprintf("%d", costOfDelay) }
-			onchange="this.form.requestSubmit()"/>
+		<button type="submit" name="cost_of_delay" value="-2">-2</button>
+		<button type="submit" name="cost_of_delay" value="-1">-1</button>
+		<button type="submit" name="cost_of_delay" value="0">0</button>
+		<button type="submit" name="cost_of_delay" value="1">1</button>
+		<button type="submit" name="cost_of_delay" value="2">2</button>
+	</form>
+}
+
+templ EditEffort(id ID, effort Effort) {
+	<form
+		fx-action={ fmt.Sprintf("/todos/%d/edit/effort", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#effort-%d", id) }
+		fx-swap="innerHTML">
+		<button type="submit">{ effort }</button>
+	</form>
+}
+
+templ InputEffort(id ID, effort Effort) {
+	<form
+		fx-action={ fmt.Sprintf("/todos/%d/update/effort", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#effort-%d", id) }
+		fx-swap="innerHTML">
+		<button type="submit" name="effort" value="mins">mins</button>
+		<button type="submit" name="effort" value="hours">hours</button>
+		<button type="submit" name="effort" value="days">days</button>
+		<button type="submit" name="effort" value="weeks">weeks</button>
+		<button type="submit" name="effort" value="months">months</button>
 	</form>
 }
 
@@ -138,7 +159,9 @@ templ TodoListPage(todos []Todo) {
 					<td id={ fmt.Sprintf("cost-of-delay-%d", todo.ID) }>
 						@EditCostOfDelay(todo.ID, todo.CostOfDelay)
 					</td>
-					<td>{ todo.Effort }</td>
+					<td id={ fmt.Sprintf("effort-%d", todo.ID) }>
+						@EditEffort(todo.ID, todo.Effort)
+					</td>
 					<td>{ todoDisplayTimestamp(todo.CreatedAt) }</td>
 					<td>{ todoDisplayTimestamp(todo.UpdatedAt) }</td>
 				<td>
