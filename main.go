@@ -13,15 +13,23 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type ID = int
+type Short = string
+type Description = string
+type DueDate = *time.Time
+type CostOfDelay = int16
+type Effort = string
+type CreatedAt = time.Time
+type UpdatedAt = time.Time
 type Todo struct {
-	ID          int
-	Short       string
-	Description string
-	DueDate     *time.Time
-	CostOfDelay int16
-	Effort      string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          ID
+	Short       Short
+	Description Description
+	DueDate     DueDate
+	CostOfDelay CostOfDelay
+	Effort      Effort
+	CreatedAt   CreatedAt
+	UpdatedAt   UpdatedAt
 }
 
 type App struct {
@@ -56,6 +64,10 @@ func main() {
 	http.HandleFunc("POST /todos/create", app.createHandler())
 	http.HandleFunc("GET /todos/{id}/edit", app.editHandler())
 	http.HandleFunc("POST /todos/{id}/update", app.updateHandler())
+	http.HandleFunc("POST /todos/{id}/edit/short", app.editShortHandler())
+	http.HandleFunc("POST /todos/{id}/update/short", app.updateShortHandler())
+	http.HandleFunc("POST /todos/{id}/edit/description", app.editDescriptionHandler())
+	http.HandleFunc("POST /todos/{id}/update/description", app.updateDescriptionHandler())
 	http.HandleFunc("POST /todos/{id}/delete", app.deleteHandler())
 
 	fmt.Println("Listening on :3000")

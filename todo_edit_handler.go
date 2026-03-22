@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -29,6 +30,44 @@ func updateTodo(ctx context.Context, db *pgxpool.Pool, id int, in TodoInput) err
 		in.DueDate,
 		in.CostOfDelay,
 		in.Effort,
+		id,
+	)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
+}
+
+func updateTodoShort(ctx context.Context, db *pgxpool.Pool, id int, short string) error {
+	tag, err := db.Exec(
+		ctx,
+		`UPDATE todos
+	         SET short=$1,
+	             updated_at=now()
+	         WHERE id=$2`,
+		short,
+		id,
+	)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
+}
+
+func updateTodoDescription(ctx context.Context, db *pgxpool.Pool, id int, description string) error {
+	tag, err := db.Exec(
+		ctx,
+		`UPDATE todos
+	         SET description=$1,
+	             updated_at=now()
+	         WHERE id=$2`,
+		description,
 		id,
 	)
 	if err != nil {
@@ -71,6 +110,122 @@ func (a *App) updateHandler() http.HandlerFunc {
 		}
 
 		a.renderTodoList(w, r)
+	}
+}
+
+// updateShortHandler handles inline updates to the short field. Path: /todos/{id}/update/short
+func (a *App) updateShortHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := todoIDFromRequest(r)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		if err = r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		short := strings.TrimSpace(r.FormValue("short"))
+		if short == "" {
+			http.Error(w, "short is required", http.StatusBadRequest)
+			return
+		}
+
+		if err = updateTodoShort(r.Context(), a.DB, id, short); err != nil {
+			if err == pgx.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err = EditShort(id, short).Render(r.Context(), w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+// updateDescriptionHandler handles inline updates to the description field. Path: /todos/{id}/update/description
+func (a *App) updateDescriptionHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := todoIDFromRequest(r)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		if err = r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		description := strings.TrimSpace(r.FormValue("description"))
+
+		if err = updateTodoDescription(r.Context(), a.DB, id, description); err != nil {
+			if err == pgx.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err = EditDescription(id, description).Render(r.Context(), w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+// editShortHandler swaps the short field into input mode. Path: /todos/{id}/edit/short
+func (a *App) editShortHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := todoIDFromRequest(r)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		todo, err := getTodo(r.Context(), a.DB, id)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err = InputShort(todo.ID, todo.Short).Render(r.Context(), w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+// editDescriptionHandler swaps the description field into input mode. Path: /todos/{id}/edit/description
+func (a *App) editDescriptionHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := todoIDFromRequest(r)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		todo, err := getTodo(r.Context(), a.DB, id)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err = InputDescription(todo.ID, todo.Description).Render(r.Context(), w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 }
 

@@ -13,6 +13,44 @@ func todoDisplayDueDate(todo *Todo) string {
 	}
 	return todo.DueDate.Format("2006-01-02")
 }
+templ EditShort(id ID, short Short) {
+	<form
+		fx-action={ fmt.Sprintf("/todos/%d/edit/short", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#short-%d", id) }
+		fx-swap="innerHTML">
+		<button type="submit">{ short }</button>
+	</form>
+}
+templ InputShort(id ID, short Short) {
+	<form
+		fx-action={ fmt.Sprintf("/todos/%d/update/short", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#short-%d", id) }
+		fx-swap="innerHTML">
+		<input type="text" name="short" value={ short }/>
+	</form>
+}
+
+templ EditDescription(id ID, description Description) {
+	<form
+		fx-action={ fmt.Sprintf("/todos/%d/edit/description", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#description-%d", id) }
+		fx-swap="innerHTML">
+		<button type="submit">{ description }</button>
+	</form>
+}
+
+templ InputDescription(id ID, description Description) {
+	<form
+		fx-action={ fmt.Sprintf("/todos/%d/update/description", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#description-%d", id) }
+		fx-swap="innerHTML">
+		<input type="text" name="description" value={ description }/>
+	</form>
+}
 
 templ TodoListPage(todos []Todo) {
 	<button fx-action="/todos/new" fx-target="#output" fx-swap="innerHTML">
@@ -31,16 +69,20 @@ templ TodoListPage(todos []Todo) {
 			<th>Updated At</th>
 			<th>Actions</th>
 		</tr>
-		for _, todo := range todos {
-			<tr>
-				<td>{ todo.ID }</td>
-				<td>{ todo.Short }</td>
-				<td>{ todo.Description }</td>
-				<td>{ todoDisplayDueDate(&todo) }</td>
-				<td>{ todo.CostOfDelay }</td>
-				<td>{ todo.Effort }</td>
-				<td>{ todoDisplayTimestamp(todo.CreatedAt) }</td>
-				<td>{ todoDisplayTimestamp(todo.UpdatedAt) }</td>
+			for _, todo := range todos {
+				<tr>
+					<td>{ todo.ID }</td>
+					<td id={ fmt.Sprintf("short-%d", todo.ID) }>
+						@EditShort(todo.ID, todo.Short)
+					</td>
+					<td id={ fmt.Sprintf("description-%d", todo.ID) }>
+						@EditDescription(todo.ID, todo.Description)
+					</td>
+					<td>{ todoDisplayDueDate(&todo) }</td>
+					<td>{ todo.CostOfDelay }</td>
+					<td>{ todo.Effort }</td>
+					<td>{ todoDisplayTimestamp(todo.CreatedAt) }</td>
+					<td>{ todoDisplayTimestamp(todo.UpdatedAt) }</td>
 				<td>
 					<button
 					fx-action={ fmt.Sprintf("/todos/%d/edit", todo.ID) }
@@ -58,8 +100,8 @@ templ TodoListPage(todos []Todo) {
 					style="display:inline">
 						<input type="submit" value="Delete"/>
 					</form>
-				</td>
-			</tr>
-		}
+					</td>
+				</tr>
+			}
 	</table>
 }
