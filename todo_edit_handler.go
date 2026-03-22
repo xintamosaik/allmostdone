@@ -10,6 +10,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+func parseInlineForm(r *http.Request) error {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+		return r.ParseMultipartForm(1 << 20)
+	}
+	return r.ParseForm()
+}
+
 func todoIDFromRequest(r *http.Request) (int, error) {
 	return strconv.Atoi(r.PathValue("id"))
 }
@@ -122,7 +129,7 @@ func (a *App) updateShortHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = r.ParseForm(); err != nil {
+		if err = parseInlineForm(r); err != nil {
 			http.Error(w, "invalid form data", http.StatusBadRequest)
 			return
 		}
@@ -157,7 +164,7 @@ func (a *App) updateDescriptionHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = r.ParseForm(); err != nil {
+		if err = parseInlineForm(r); err != nil {
 			http.Error(w, "invalid form data", http.StatusBadRequest)
 			return
 		}
