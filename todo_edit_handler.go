@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -75,6 +76,25 @@ func updateTodoDescription(ctx context.Context, db *pgxpool.Pool, id int, descri
 	             updated_at=now()
 	         WHERE id=$2`,
 		description,
+		id,
+	)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
+}
+
+func updateTodoDueDate(ctx context.Context, db *pgxpool.Pool, id int, dueDate *time.Time) error {
+	tag, err := db.Exec(
+		ctx,
+		`UPDATE todos
+	         SET due_date=$1,
+	             updated_at=now()
+	         WHERE id=$2`,
+		dueDate,
 		id,
 	)
 	if err != nil {
@@ -186,6 +206,50 @@ func (a *App) updateDescriptionHandler() http.HandlerFunc {
 	}
 }
 
+// updateDueDateHandler handles inline updates to the due date field. Path: /todos/{id}/update/due-date
+func (a *App) updateDueDateHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := todoIDFromRequest(r)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		if err = parseInlineForm(r); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		dateStr := strings.TrimSpace(r.FormValue("due_date"))
+		var dueDate *time.Time
+		if dateStr != "" {
+			dt, parseErr := time.Parse("2006-01-02", dateStr)
+			if parseErr != nil {
+				http.Error(w, "due_date must be in YYYY-MM-DD format", http.StatusBadRequest)
+				return
+			}
+			dueDate = &dt
+		}
+
+		if err = updateTodoDueDate(r.Context(), a.DB, id, dueDate); err != nil {
+			if err == pgx.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		display := "N/A"
+		if dueDate != nil {
+			display = dueDate.Format("2006-01-02")
+		}
+		if err = EditDueDate(id, display).Render(r.Context(), w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
 // editShortHandler swaps the short field into input mode. Path: /todos/{id}/edit/short
 func (a *App) editShortHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -231,6 +295,31 @@ func (a *App) editDescriptionHandler() http.HandlerFunc {
 		}
 
 		if err = InputDescription(todo.ID, todo.Description).Render(r.Context(), w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+// editDueDateHandler swaps the due date field into input mode. Path: /todos/{id}/edit/due-date
+func (a *App) editDueDateHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := todoIDFromRequest(r)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		todo, err := getTodo(r.Context(), a.DB, id)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err = InputDueDate(todo.ID, todoInputDueDateForCell(todo.DueDate)).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

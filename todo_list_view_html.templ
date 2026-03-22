@@ -13,6 +13,13 @@ func todoDisplayDueDate(todo *Todo) string {
 	}
 	return todo.DueDate.Format("2006-01-02")
 }
+
+func todoInputDueDateForCell(dueDate DueDate) string {
+	if dueDate == nil {
+		return ""
+	}
+	return dueDate.Format("2006-01-02")
+}
 templ EditShort(id ID, short Short) {
 	<form
 		fx-action={ fmt.Sprintf("/todos/%d/edit/short", id) }
@@ -52,6 +59,26 @@ templ InputDescription(id ID, description Description) {
 	</form>
 }
 
+templ EditDueDate(id ID, dueDate string) {
+	<form
+		fx-action={ fmt.Sprintf("/todos/%d/edit/due-date", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#due-date-%d", id) }
+		fx-swap="innerHTML">
+		<button type="submit">{ dueDate }</button>
+	</form>
+}
+
+templ InputDueDate(id ID, dueDate string) {
+	<form
+		fx-action={ fmt.Sprintf("/todos/%d/update/due-date", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#due-date-%d", id) }
+		fx-swap="innerHTML">
+		<input type="date" name="due_date" value={ dueDate } onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()"/>
+	</form>
+}
+
 templ TodoListPage(todos []Todo) {
 	<button fx-action="/todos/new" fx-target="#output" fx-swap="innerHTML">
 		New todo
@@ -78,7 +105,9 @@ templ TodoListPage(todos []Todo) {
 					<td id={ fmt.Sprintf("description-%d", todo.ID) }>
 						@EditDescription(todo.ID, todo.Description)
 					</td>
-					<td>{ todoDisplayDueDate(&todo) }</td>
+					<td id={ fmt.Sprintf("due-date-%d", todo.ID) }>
+						@EditDueDate(todo.ID, todoDisplayDueDate(&todo))
+					</td>
 					<td>{ todo.CostOfDelay }</td>
 					<td>{ todo.Effort }</td>
 					<td>{ todoDisplayTimestamp(todo.CreatedAt) }</td>
