@@ -22,20 +22,88 @@ input:not([type="submit"]), textarea, select {
     border: 1px solid #ccc;
 }
 
-table {
+.todo-grid {
     width: 100%;
-    border-collapse: collapse;
+    overflow-x: auto;
 }
 
-th, tr:not(:last-child) td {
+.todo-grid-header,
+.todo-grid-row {
+    display: grid;
+    grid-template-columns: 3ch 16ch minmax(24ch, 1.5fr) 12ch 10ch 10ch 8ch 8ch minmax(8rem, 1fr);
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.todo-grid-header {
+    font-weight: 700;
+    padding: 0.5em 0.5em 0.75em;
     border-bottom: 1px solid #ccc;
- 
 }
 
-th, td {
-    padding: 0.5em;
-    text-align: left;
-    height: 5rem;
+.todo-grid-row {
+    padding: 0.75em 0.5em;
+    border-bottom: 1px solid #ccc;
+    min-height: 5rem;
+}
+
+.todo-grid-cell {
+    min-width: 0;
+}
+
+.todo-grid-cell button {
+    width: 100%;
+}
+
+.todo-grid-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.todo-grid-actions form {
+    margin: 0;
+}
+
+.todo-grid-label {
+    display: none;
+}
+
+@media (max-width: 960px) {
+    .todo-grid {
+        overflow: visible;
+    }
+
+    .todo-grid-header {
+        display: none;
+    }
+
+    .todo-grid-row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+    }
+
+    .todo-grid-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 0.2rem;
+    }
+
+    .todo-grid-actions {
+        justify-content: flex-start;
+    }
+
+    .todo-grid-actions button,
+    .todo-grid-actions input[type="submit"] {
+        width: auto;
+    }
 }
 
 .error {

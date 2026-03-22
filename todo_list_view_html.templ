@@ -184,68 +184,68 @@ templ TodoListPage(todos []Todo) {
 		New todo
 	</button>
 	<h1>Todo List</h1>
-	<table id="todos">
-		<colgroup>
-		    <!-- ID -->
-			<col style="width: 3ch"/>
-			<!-- Short -->
-			<col style="width: 16ch"/>
-			<!-- Description -->
-			<col style="width: 24ch"/>
-			<!-- Due Date -->
-			<col style="width: 12ch"/>
-			<!-- Cost of Delay -->
-			<col style="width: 10ch"/>
-			<!-- Effort -->
-			<col style="width: 10ch"/>
-			<!-- Created -->
-			<col style="width: 5ch"/>
-			<!-- Updated -->
-			<col style="width: 5ch"/>
-			<!-- Actions -->
-			<col style="width: 8rem"/>
-
-		</colgroup>
-		<tr>
-			<th>ID</th>
-			<th>Short</th>
-			<th>Desc</th>
-			<th>Due Date</th>
-			<th>Cost of Delay</th>
-			<th>Effort</th>
-			<th>Created</th>
-			<th>Updated</th>
-			<th>Actions</th>
-		</tr>
+	<div id="todos" class="todo-grid" role="table" aria-label="Todo list">
+		<div class="todo-grid-header" role="row">
+			<div role="columnheader">ID</div>
+			<div role="columnheader">Short</div>
+			<div role="columnheader">Desc</div>
+			<div role="columnheader">Due Date</div>
+			<div role="columnheader">Cost of Delay</div>
+			<div role="columnheader">Effort</div>
+			<div role="columnheader">Created</div>
+			<div role="columnheader">Updated</div>
+			<div role="columnheader">Actions</div>
+		</div>
 		for _, todo := range todos {
-			<tr>
-				<td>{ todo.ID }</td>
-				<td id={ fmt.Sprintf("short-%d", todo.ID) }>
-					@ShortDisplay(todo.ID, todo.Short)
-				</td>
-				<td id={ fmt.Sprintf("description-%d", todo.ID) }>
-					@DescriptionDisplay(todo.ID, todo.Description)
-				</td>
-				<td id={ fmt.Sprintf("due-date-%d", todo.ID) }>
-					@DueDateDisplay(todo.ID, todoDisplayDueDate(&todo))
-				</td>
-				<td id={ fmt.Sprintf("cost-of-delay-%d", todo.ID) }>
-					@CostOfDelayDisplay(todo.ID, todo.CostOfDelay)
-				</td>
-				<td id={ fmt.Sprintf("effort-%d", todo.ID) }>
-					@EffortDisplay(todo.ID, todo.Effort)
-				</td>
-				<td>
+			<article class="todo-grid-row" role="row">
+				<div class="todo-grid-cell" data-label="ID" role="cell">
+					<span class="todo-grid-label">ID</span>
+					<span>{ todo.ID }</span>
+				</div>
+				<div class="todo-grid-cell" data-label="Short" role="cell">
+					<span class="todo-grid-label">Short</span>
+					<div id={ fmt.Sprintf("short-%d", todo.ID) }>
+						@ShortDisplay(todo.ID, todo.Short)
+					</div>
+				</div>
+				<div class="todo-grid-cell" data-label="Desc" role="cell">
+					<span class="todo-grid-label">Desc</span>
+					<div id={ fmt.Sprintf("description-%d", todo.ID) }>
+						@DescriptionDisplay(todo.ID, todo.Description)
+					</div>
+				</div>
+				<div class="todo-grid-cell" data-label="Due Date" role="cell">
+					<span class="todo-grid-label">Due Date</span>
+					<div id={ fmt.Sprintf("due-date-%d", todo.ID) }>
+						@DueDateDisplay(todo.ID, todoDisplayDueDate(&todo))
+					</div>
+				</div>
+				<div class="todo-grid-cell" data-label="Cost of Delay" role="cell">
+					<span class="todo-grid-label">Cost of Delay</span>
+					<div id={ fmt.Sprintf("cost-of-delay-%d", todo.ID) }>
+						@CostOfDelayDisplay(todo.ID, todo.CostOfDelay)
+					</div>
+				</div>
+				<div class="todo-grid-cell" data-label="Effort" role="cell">
+					<span class="todo-grid-label">Effort</span>
+					<div id={ fmt.Sprintf("effort-%d", todo.ID) }>
+						@EffortDisplay(todo.ID, todo.Effort)
+					</div>
+				</div>
+				<div class="todo-grid-cell" data-label="Created" role="cell">
+					<span class="todo-grid-label">Created</span>
 					<time datetime={ todo.CreatedAt.Format(time.RFC3339) } title={ todoDisplayTimestamp(todo.CreatedAt) }>
 						{ todoRelativeTime(todo.CreatedAt) }
 					</time>
-				</td>
-				<td>
+				</div>
+				<div class="todo-grid-cell" data-label="Updated" role="cell">
+					<span class="todo-grid-label">Updated</span>
 					<time datetime={ todo.UpdatedAt.Format(time.RFC3339) } title={ todoDisplayTimestamp(todo.UpdatedAt) }>
 						{ todoRelativeTime(todo.UpdatedAt) }
 					</time>
-				</td>
-				<td>
+				</div>
+				<div class="todo-grid-cell todo-grid-actions" data-label="Actions" role="cell">
+					<span class="todo-grid-label">Actions</span>
 					<button
 						fx-action={ fmt.Sprintf("/todos/%d/edit", todo.ID) }
 						fx-target="#output"
@@ -262,8 +262,8 @@ templ TodoListPage(todos []Todo) {
 						style="display:inline">
 						<input type="submit" value="Delete"/>
 					</form>
-				</td>
-			</tr>
+				</div>
+			</article>
 		}
-	</table>
+	</div>
 }
