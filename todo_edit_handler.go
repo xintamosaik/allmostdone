@@ -142,8 +142,8 @@ func (a *App) updateHandler() http.HandlerFunc {
 	}
 }
 
-// updateShortHandler handles inline updates to the short field. Path: /todos/{id}/update/short
-func (a *App) updateShortHandler() http.HandlerFunc {
+// saveShortInlineHandler handles inline updates to the short field. Path: /todos/{id}/update/short
+func (a *App) saveShortInlineHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := todoIDFromRequest(r)
 		if err != nil {
@@ -174,14 +174,14 @@ func (a *App) updateShortHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = EditShort(id, short).Render(r.Context(), w); err != nil {
+		if err = ShortDisplay(id, short).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
 
-// updateDescriptionHandler handles inline updates to the description field. Path: /todos/{id}/update/description
-func (a *App) updateDescriptionHandler() http.HandlerFunc {
+// saveDescriptionInlineHandler handles inline updates to the description field. Path: /todos/{id}/update/description
+func (a *App) saveDescriptionInlineHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := todoIDFromRequest(r)
 		if err != nil {
@@ -208,14 +208,14 @@ func (a *App) updateDescriptionHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = EditDescription(id, description).Render(r.Context(), w); err != nil {
+		if err = DescriptionDisplay(id, description).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
 
-// updateDueDateHandler handles inline updates to the due date field. Path: /todos/{id}/update/due-date
-func (a *App) updateDueDateHandler() http.HandlerFunc {
+// saveDueDateInlineHandler handles inline updates to the due date field. Path: /todos/{id}/update/due-date
+func (a *App) saveDueDateInlineHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := todoIDFromRequest(r)
 		if err != nil {
@@ -255,14 +255,14 @@ func (a *App) updateDueDateHandler() http.HandlerFunc {
 		if dueDate != nil {
 			display = dueDate.Format("2006-01-02")
 		}
-		if err = EditDueDate(id, display).Render(r.Context(), w); err != nil {
+		if err = DueDateDisplay(id, display).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
 
-// updateCostOfDelayHandler handles inline updates to the cost of delay field. Path: /todos/{id}/update/cost-of-delay
-func (a *App) updateCostOfDelayHandler() http.HandlerFunc {
+// saveCostOfDelayInlineHandler handles inline updates to the cost of delay field. Path: /todos/{id}/update/cost-of-delay
+func (a *App) saveCostOfDelayInlineHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := todoIDFromRequest(r)
 		if err != nil {
@@ -304,14 +304,14 @@ func (a *App) updateCostOfDelayHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = EditCostOfDelay(id, costOfDelay).Render(r.Context(), w); err != nil {
+		if err = CostOfDelayDisplay(id, costOfDelay).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
 
-// updateEffortHandler handles inline updates to the effort field. Path: /todos/{id}/update/effort
-func (a *App) updateEffortHandler() http.HandlerFunc {
+// saveEffortInlineHandler handles inline updates to the effort field. Path: /todos/{id}/update/effort
+func (a *App) saveEffortInlineHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := todoIDFromRequest(r)
 		if err != nil {
@@ -342,14 +342,14 @@ func (a *App) updateEffortHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = EditEffort(id, effort).Render(r.Context(), w); err != nil {
+		if err = EffortDisplay(id, effort).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
 
-// editShortHandler swaps the short field into input mode. Path: /todos/{id}/edit/short
-func (a *App) editShortHandler() http.HandlerFunc {
+// showShortEditorHandler swaps the short field into input mode. Path: /todos/{id}/edit/short
+func (a *App) showShortEditorHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := todoIDFromRequest(r)
 		if err != nil {
@@ -367,14 +367,14 @@ func (a *App) editShortHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = InputShort(todo.ID, todo.Short).Render(r.Context(), w); err != nil {
+		if err = ShortEditor(todo.ID, todo.Short).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
 
-// editDescriptionHandler swaps the description field into input mode. Path: /todos/{id}/edit/description
-func (a *App) editDescriptionHandler() http.HandlerFunc {
+// showDescriptionEditorHandler swaps the description field into input mode. Path: /todos/{id}/edit/description
+func (a *App) showDescriptionEditorHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := todoIDFromRequest(r)
 		if err != nil {
@@ -392,14 +392,14 @@ func (a *App) editDescriptionHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = InputDescription(todo.ID, todo.Description).Render(r.Context(), w); err != nil {
+		if err = DescriptionEditor(todo.ID, todo.Description).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
 
-// editDueDateHandler swaps the due date field into input mode. Path: /todos/{id}/edit/due-date
-func (a *App) editDueDateHandler() http.HandlerFunc {
+// showDueDateEditorHandler swaps the due date field into input mode. Path: /todos/{id}/edit/due-date
+func (a *App) showDueDateEditorHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := todoIDFromRequest(r)
 		if err != nil {
@@ -417,14 +417,14 @@ func (a *App) editDueDateHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = InputDueDate(todo.ID, todoInputDueDateForCell(todo.DueDate)).Render(r.Context(), w); err != nil {
+		if err = DueDateEditor(todo.ID, todoInputDueDateForCell(todo.DueDate)).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
 
-// editCostOfDelayHandler swaps the cost of delay field into input mode. Path: /todos/{id}/edit/cost-of-delay
-func (a *App) editCostOfDelayHandler() http.HandlerFunc {
+// showCostOfDelayEditorHandler swaps the cost of delay field into input mode. Path: /todos/{id}/edit/cost-of-delay
+func (a *App) showCostOfDelayEditorHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := todoIDFromRequest(r)
 		if err != nil {
@@ -442,14 +442,14 @@ func (a *App) editCostOfDelayHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = InputCostOfDelay(todo.ID, todo.CostOfDelay).Render(r.Context(), w); err != nil {
+		if err = CostOfDelayEditor(todo.ID, todo.CostOfDelay).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
 
-// editEffortHandler swaps the effort field into input mode. Path: /todos/{id}/edit/effort
-func (a *App) editEffortHandler() http.HandlerFunc {
+// showEffortEditorHandler swaps the effort field into input mode. Path: /todos/{id}/edit/effort
+func (a *App) showEffortEditorHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := todoIDFromRequest(r)
 		if err != nil {
@@ -467,7 +467,7 @@ func (a *App) editEffortHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = InputEffort(todo.ID, todo.Effort).Render(r.Context(), w); err != nil {
+		if err = EffortEditor(todo.ID, todo.Effort).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

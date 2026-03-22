@@ -20,7 +20,7 @@ func todoInputDueDateForCell(dueDate DueDate) string {
 	}
 	return dueDate.Format("2006-01-02")
 }
-templ EditShort(id ID, short Short) {
+templ ShortDisplay(id ID, short Short) {
 	<form
 		fx-action={ fmt.Sprintf("/todos/%d/edit/short", id) }
 		fx-method="POST"
@@ -29,7 +29,7 @@ templ EditShort(id ID, short Short) {
 		<button type="submit">{ short }</button>
 	</form>
 }
-templ InputShort(id ID, short Short) {
+templ ShortEditor(id ID, short Short) {
 	<form
 		fx-action={ fmt.Sprintf("/todos/%d/update/short", id) }
 		fx-method="POST"
@@ -39,7 +39,7 @@ templ InputShort(id ID, short Short) {
 	</form>
 }
 
-templ EditDescription(id ID, description Description) {
+templ DescriptionDisplay(id ID, description Description) {
 	<form
 		fx-action={ fmt.Sprintf("/todos/%d/edit/description", id) }
 		fx-method="POST"
@@ -49,7 +49,7 @@ templ EditDescription(id ID, description Description) {
 	</form>
 }
 
-templ InputDescription(id ID, description Description) {
+templ DescriptionEditor(id ID, description Description) {
 	<form
 		fx-action={ fmt.Sprintf("/todos/%d/update/description", id) }
 		fx-method="POST"
@@ -59,7 +59,7 @@ templ InputDescription(id ID, description Description) {
 	</form>
 }
 
-templ EditDueDate(id ID, dueDate string) {
+templ DueDateDisplay(id ID, dueDate string) {
 	<form
 		fx-action={ fmt.Sprintf("/todos/%d/edit/due-date", id) }
 		fx-method="POST"
@@ -69,7 +69,7 @@ templ EditDueDate(id ID, dueDate string) {
 	</form>
 }
 
-templ InputDueDate(id ID, dueDate string) {
+templ DueDateEditor(id ID, dueDate string) {
 	<form
 		fx-action={ fmt.Sprintf("/todos/%d/update/due-date", id) }
 		fx-method="POST"
@@ -79,7 +79,7 @@ templ InputDueDate(id ID, dueDate string) {
 	</form>
 }
 
-templ EditCostOfDelay(id ID, costOfDelay CostOfDelay) {
+templ CostOfDelayDisplay(id ID, costOfDelay CostOfDelay) {
 	<form
 		fx-action={ fmt.Sprintf("/todos/%d/edit/cost-of-delay", id) }
 		fx-method="POST"
@@ -89,7 +89,7 @@ templ EditCostOfDelay(id ID, costOfDelay CostOfDelay) {
 	</form>
 }
 
-templ InputCostOfDelay(id ID, costOfDelay CostOfDelay) {
+templ CostOfDelayEditor(id ID, costOfDelay CostOfDelay) {
 	<form
 		fx-action={ fmt.Sprintf("/todos/%d/update/cost-of-delay", id) }
 		fx-method="POST"
@@ -103,7 +103,7 @@ templ InputCostOfDelay(id ID, costOfDelay CostOfDelay) {
 	</form>
 }
 
-templ EditEffort(id ID, effort Effort) {
+templ EffortDisplay(id ID, effort Effort) {
 	<form
 		fx-action={ fmt.Sprintf("/todos/%d/edit/effort", id) }
 		fx-method="POST"
@@ -113,7 +113,7 @@ templ EditEffort(id ID, effort Effort) {
 	</form>
 }
 
-templ InputEffort(id ID, effort Effort) {
+templ EffortEditor(id ID, effort Effort) {
 	<form
 		fx-action={ fmt.Sprintf("/todos/%d/update/effort", id) }
 		fx-method="POST"
@@ -148,19 +148,19 @@ templ TodoListPage(todos []Todo) {
 				<tr>
 					<td>{ todo.ID }</td>
 					<td id={ fmt.Sprintf("short-%d", todo.ID) }>
-						@EditShort(todo.ID, todo.Short)
+						@ShortDisplay(todo.ID, todo.Short)
 					</td>
 					<td id={ fmt.Sprintf("description-%d", todo.ID) }>
-						@EditDescription(todo.ID, todo.Description)
+						@DescriptionDisplay(todo.ID, todo.Description)
 					</td>
 					<td id={ fmt.Sprintf("due-date-%d", todo.ID) }>
-						@EditDueDate(todo.ID, todoDisplayDueDate(&todo))
+						@DueDateDisplay(todo.ID, todoDisplayDueDate(&todo))
 					</td>
 					<td id={ fmt.Sprintf("cost-of-delay-%d", todo.ID) }>
-						@EditCostOfDelay(todo.ID, todo.CostOfDelay)
+						@CostOfDelayDisplay(todo.ID, todo.CostOfDelay)
 					</td>
 					<td id={ fmt.Sprintf("effort-%d", todo.ID) }>
-						@EditEffort(todo.ID, todo.Effort)
+						@EffortDisplay(todo.ID, todo.Effort)
 					</td>
 					<td>{ todoDisplayTimestamp(todo.CreatedAt) }</td>
 					<td>{ todoDisplayTimestamp(todo.UpdatedAt) }</td>
