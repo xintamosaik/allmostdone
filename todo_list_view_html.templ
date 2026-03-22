@@ -36,6 +36,7 @@ templ ShortEditor(id ID, short Short) {
 		fx-target={ fmt.Sprintf("#short-%d", id) }
 		fx-swap="innerHTML">
 		<input type="text" name="short" value={ short }/>
+		<button type="submit">Save</button>
 	</form>
 }
 
@@ -56,6 +57,7 @@ templ DescriptionEditor(id ID, description Description) {
 		fx-target={ fmt.Sprintf("#description-%d", id) }
 		fx-swap="innerHTML">
 		<input type="text" name="description" value={ description }/>
+		<button type="submit">Save</button>
 	</form>
 }
 
@@ -75,7 +77,8 @@ templ DueDateEditor(id ID, dueDate string) {
 		fx-method="POST"
 		fx-target={ fmt.Sprintf("#due-date-%d", id) }
 		fx-swap="innerHTML">
-		<input type="date" name="due_date" value={ dueDate } onchange="this.form.requestSubmit()"/>
+		<input type="date" name="due_date" value={ dueDate }/>
+		<button type="submit">Save</button>
 	</form>
 }
 
