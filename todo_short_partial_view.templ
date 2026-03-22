@@ -1,0 +1,30 @@
+package main
+
+import (
+	"fmt"
+)
+
+templ ShortDisplay(id ID, short Short) {
+	<button
+		type="button"
+		style="width: 100%"
+		fx-action={ fmt.Sprintf("/todos/%d/edit/short", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#short-%d", id) }
+		fx-swap="innerHTML"
+		aria-label={ fmt.Sprintf("Edit short for todo %d", id) }>
+		{ short }
+	</button>
+}
+
+templ ShortEditor(id ID, short Short) {
+	<form
+		style="display:flex; flex-direction: column; align-items: stretch; width: 16ch"
+		fx-action={ fmt.Sprintf("/todos/%d/update/short", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#short-%d", id) }
+		fx-swap="innerHTML">
+		<input type="text" name="short" value={ short }/>
+		<button type="submit">Save</button>
+	</form>
+}

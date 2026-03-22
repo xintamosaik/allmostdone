@@ -1,0 +1,32 @@
+package main
+
+import (
+	"fmt"
+)
+
+templ CostOfDelayDisplay(id ID, costOfDelay CostOfDelay) {
+	<button
+		type="button"
+		style="width: 100%"
+		fx-action={ fmt.Sprintf("/todos/%d/edit/cost-of-delay", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#cost-of-delay-%d", id) }
+		fx-swap="innerHTML"
+		aria-label={ fmt.Sprintf("Edit cost of delay for todo %d", id) }>
+		{ costOfDelay }
+	</button>
+}
+
+templ CostOfDelayEditor(id ID, costOfDelay CostOfDelay) {
+	<form
+		fx-action={ fmt.Sprintf("/todos/%d/update/cost-of-delay", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#cost-of-delay-%d", id) }
+		fx-swap="innerHTML">
+		<button type="submit" name="cost_of_delay" value="-2">-2</button>
+		<button type="submit" name="cost_of_delay" value="-1">-1</button>
+		<button type="submit" name="cost_of_delay" value="0">0</button>
+		<button type="submit" name="cost_of_delay" value="1">1</button>
+		<button type="submit" name="cost_of_delay" value="2">2</button>
+	</form>
+}

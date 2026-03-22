@@ -1,0 +1,30 @@
+package main
+
+import (
+	"fmt"
+)
+
+templ DueDateDisplay(id ID, dueDate string) {
+	<button
+		type="button"
+		style="width: 100%"
+		fx-action={ fmt.Sprintf("/todos/%d/edit/due-date", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#due-date-%d", id) }
+		fx-swap="innerHTML"
+		aria-label={ fmt.Sprintf("Edit due date for todo %d", id) }>
+		{ dueDate }
+	</button>
+}
+
+templ DueDateEditor(id ID, dueDate string) {
+	<form
+		style="display:flex; flex-direction: column; align-items: stretch"
+		fx-action={ fmt.Sprintf("/todos/%d/update/due-date", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#due-date-%d", id) }
+		fx-swap="innerHTML">
+		<input type="date" name="due_date" value={ dueDate }/>
+		<button type="submit">Save</button>
+	</form>
+}

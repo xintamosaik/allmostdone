@@ -1,0 +1,30 @@
+package main
+
+import (
+	"fmt"
+)
+
+templ DescriptionDisplay(id ID, description Description) {
+	<button
+		type="button"
+		style="width: 100%"
+		fx-action={ fmt.Sprintf("/todos/%d/edit/description", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#description-%d", id) }
+		fx-swap="innerHTML"
+		aria-label={ fmt.Sprintf("Edit description for todo %d", id) }>
+		{ todoPreviewText(description, 24) }
+	</button>
+}
+
+templ DescriptionEditor(id ID, description Description) {
+	<form
+		style="display:flex; flex-direction: column; align-items: stretch"
+		fx-action={ fmt.Sprintf("/todos/%d/update/description", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#description-%d", id) }
+		fx-swap="innerHTML">
+		<input type="text" name="description" value={ description }/>
+		<button type="submit">Save</button>
+	</form>
+}

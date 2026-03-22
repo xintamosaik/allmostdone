@@ -1,0 +1,31 @@
+package main
+import (
+    "fmt"
+)
+
+templ EffortDisplay(id ID, effort Effort) {
+	<button
+		type="button"
+		style="width: 100%"
+		fx-action={ fmt.Sprintf("/todos/%d/edit/effort", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#effort-%d", id) }
+		fx-swap="innerHTML"
+		aria-label={ fmt.Sprintf("Edit effort for todo %d", id) }>
+		{ effort }
+	</button>
+}
+
+templ EffortEditor(id ID, effort Effort) {
+	<form
+		fx-action={ fmt.Sprintf("/todos/%d/update/effort", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#effort-%d", id) }
+		fx-swap="innerHTML">
+		<button type="submit" name="effort" value="mins">mins</button>
+		<button type="submit" name="effort" value="hours">hours</button>
+		<button type="submit" name="effort" value="days">days</button>
+		<button type="submit" name="effort" value="weeks">weeks</button>
+		<button type="submit" name="effort" value="months">months</button>
+	</form>
+}
