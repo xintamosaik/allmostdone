@@ -45,6 +45,11 @@ func isAllowedEffort(effort string) bool {
 }
 
 func updateTodoPartial(ctx context.Context, db *pgxpool.Pool, id int, patch TodoPartialUpdate) error {
+	var effortValue any
+	if patch.EffortSet {
+		effortValue = patch.Effort
+	}
+
 	tag, err := db.Exec(
 		ctx,
 		`UPDATE todos
@@ -52,7 +57,7 @@ func updateTodoPartial(ctx context.Context, db *pgxpool.Pool, id int, patch Todo
              description = CASE WHEN $3 THEN $4 ELSE description END,
              due_date = CASE WHEN $5 THEN $6 ELSE due_date END,
              cost_of_delay = CASE WHEN $7 THEN $8 ELSE cost_of_delay END,
-             effort = CASE WHEN $9 THEN $10 ELSE effort END,
+             effort = CASE WHEN $9 THEN $10::effort ELSE effort END,
              updated_at=now()
          WHERE id=$11`,
 		patch.ShortSet,
@@ -64,7 +69,7 @@ func updateTodoPartial(ctx context.Context, db *pgxpool.Pool, id int, patch Todo
 		patch.CostOfDelaySet,
 		patch.CostOfDelay,
 		patch.EffortSet,
-		patch.Effort,
+		effortValue,
 		id,
 	)
 	if err != nil {
