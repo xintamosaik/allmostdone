@@ -34,7 +34,7 @@ func (d TodoFormData) CostOfDelayValue() string {
 	if d.CostOfDelayRaw != "" {
 		return d.CostOfDelayRaw
 	}
-	return ""
+	return todoInputCostOfDelayValue(d.Input)
 }
 
 func todoInputDueDateValue(in TodoInput) string {
