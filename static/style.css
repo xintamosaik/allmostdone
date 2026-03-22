@@ -18,7 +18,6 @@ button:hover, input[type="submit"]:hover {
 
 input:not([type="submit"]), textarea, select {
     padding: 0.5em;
-    margin-bottom: 1em;
     border-radius: 5px;
     border: 1px solid #ccc;
 }
@@ -36,6 +35,7 @@ th, tr:not(:last-child) td {
 th, td {
     padding: 0.5em;
     text-align: left;
+    height: 5rem;
 }
 
 .error {

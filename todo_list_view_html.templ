@@ -65,6 +65,7 @@ templ ShortDisplay(id ID, short Short) {
 
 templ ShortEditor(id ID, short Short) {
 	<form
+	    style="display:flex; flex-direction: column; align-items: stretch; width: 16ch"
 		fx-action={ fmt.Sprintf("/todos/%d/update/short", id) }
 		fx-method="POST"
 		fx-target={ fmt.Sprintf("#short-%d", id) }
@@ -89,6 +90,7 @@ templ DescriptionDisplay(id ID, description Description) {
 
 templ DescriptionEditor(id ID, description Description) {
 	<form
+	    style="display:flex; flex-direction: column; align-items: stretch"
 		fx-action={ fmt.Sprintf("/todos/%d/update/description", id) }
 		fx-method="POST"
 		fx-target={ fmt.Sprintf("#description-%d", id) }
@@ -113,6 +115,7 @@ templ DueDateDisplay(id ID, dueDate string) {
 
 templ DueDateEditor(id ID, dueDate string) {
 	<form
+	    style="display:flex; flex-direction: column; align-items: stretch"
 		fx-action={ fmt.Sprintf("/todos/%d/update/due-date", id) }
 		fx-method="POST"
 		fx-target={ fmt.Sprintf("#due-date-%d", id) }
@@ -183,15 +186,25 @@ templ TodoListPage(todos []Todo) {
 	<h1>Todo List</h1>
 	<table id="todos">
 		<colgroup>
-			<col style="width: 4rem"/>
-			<col style="width: 16%"/>
-			<col style="width: 28%"/>
-			<col style="width: 10rem"/>
+		    <!-- ID -->
+			<col style="width: 3ch"/>
+			<!-- Short -->
+			<col style="width: 16ch"/>
+			<!-- Description -->
+			<col style="width: 24ch"/>
+			<!-- Due Date -->
+			<col style="width: 12ch"/>
+			<!-- Cost of Delay -->
+			<col style="width: 10ch"/>
+			<!-- Effort -->
+			<col style="width: 10ch"/>
+			<!-- Created -->
+			<col style="width: 5ch"/>
+			<!-- Updated -->
+			<col style="width: 5ch"/>
+			<!-- Actions -->
 			<col style="width: 8rem"/>
-			<col style="width: 8rem"/>
-			<col style="width: 8rem"/>
-			<col style="width: 8rem"/>
-			<col style="width: 10rem"/>
+
 		</colgroup>
 		<tr>
 			<th>ID</th>
