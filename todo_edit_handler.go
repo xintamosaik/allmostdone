@@ -11,6 +11,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type TodoPartialUpdate struct {
+	Short          string
+	ShortSet       bool
+	Description    string
+	DescriptionSet bool
+	DueDate        *time.Time
+	DueDateSet     bool
+}
+
 func parseInlineForm(r *http.Request) error {
 	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
 		return r.ParseMultipartForm(1 << 20)
@@ -20,6 +29,32 @@ func parseInlineForm(r *http.Request) error {
 
 func todoIDFromRequest(r *http.Request) (int, error) {
 	return strconv.Atoi(r.PathValue("id"))
+}
+
+func updateTodoPartial(ctx context.Context, db *pgxpool.Pool, id int, patch TodoPartialUpdate) error {
+	tag, err := db.Exec(
+		ctx,
+		`UPDATE todos
+         SET short = CASE WHEN $1 THEN $2 ELSE short END,
+             description = CASE WHEN $3 THEN $4 ELSE description END,
+             due_date = CASE WHEN $5 THEN $6 ELSE due_date END,
+             updated_at=now()
+         WHERE id=$7`,
+		patch.ShortSet,
+		patch.Short,
+		patch.DescriptionSet,
+		patch.Description,
+		patch.DueDateSet,
+		patch.DueDate,
+		id,
+	)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
 }
 
 func updateTodo(ctx context.Context, db *pgxpool.Pool, id int, in TodoInput) error {
@@ -38,63 +73,6 @@ func updateTodo(ctx context.Context, db *pgxpool.Pool, id int, in TodoInput) err
 		in.DueDate,
 		in.CostOfDelay,
 		in.Effort,
-		id,
-	)
-	if err != nil {
-		return err
-	}
-	if tag.RowsAffected() == 0 {
-		return pgx.ErrNoRows
-	}
-	return nil
-}
-
-func updateTodoShort(ctx context.Context, db *pgxpool.Pool, id int, short string) error {
-	tag, err := db.Exec(
-		ctx,
-		`UPDATE todos
-	         SET short=$1,
-	             updated_at=now()
-	         WHERE id=$2`,
-		short,
-		id,
-	)
-	if err != nil {
-		return err
-	}
-	if tag.RowsAffected() == 0 {
-		return pgx.ErrNoRows
-	}
-	return nil
-}
-
-func updateTodoDescription(ctx context.Context, db *pgxpool.Pool, id int, description string) error {
-	tag, err := db.Exec(
-		ctx,
-		`UPDATE todos
-	         SET description=$1,
-	             updated_at=now()
-	         WHERE id=$2`,
-		description,
-		id,
-	)
-	if err != nil {
-		return err
-	}
-	if tag.RowsAffected() == 0 {
-		return pgx.ErrNoRows
-	}
-	return nil
-}
-
-func updateTodoDueDate(ctx context.Context, db *pgxpool.Pool, id int, dueDate *time.Time) error {
-	tag, err := db.Exec(
-		ctx,
-		`UPDATE todos
-	         SET due_date=$1,
-	             updated_at=now()
-	         WHERE id=$2`,
-		dueDate,
 		id,
 	)
 	if err != nil {
@@ -160,7 +138,10 @@ func (a *App) updateShortHandler() http.HandlerFunc {
 			return
 		}
 
-		if err = updateTodoShort(r.Context(), a.DB, id, short); err != nil {
+		if err = updateTodoPartial(r.Context(), a.DB, id, TodoPartialUpdate{
+			Short:    short,
+			ShortSet: true,
+		}); err != nil {
 			if err == pgx.ErrNoRows {
 				http.NotFound(w, r)
 				return
@@ -191,7 +172,10 @@ func (a *App) updateDescriptionHandler() http.HandlerFunc {
 
 		description := strings.TrimSpace(r.FormValue("description"))
 
-		if err = updateTodoDescription(r.Context(), a.DB, id, description); err != nil {
+		if err = updateTodoPartial(r.Context(), a.DB, id, TodoPartialUpdate{
+			Description:    description,
+			DescriptionSet: true,
+		}); err != nil {
 			if err == pgx.ErrNoRows {
 				http.NotFound(w, r)
 				return
@@ -231,7 +215,10 @@ func (a *App) updateDueDateHandler() http.HandlerFunc {
 			dueDate = &dt
 		}
 
-		if err = updateTodoDueDate(r.Context(), a.DB, id, dueDate); err != nil {
+		if err = updateTodoPartial(r.Context(), a.DB, id, TodoPartialUpdate{
+			DueDate:    dueDate,
+			DueDateSet: true,
+		}); err != nil {
 			if err == pgx.ErrNoRows {
 				http.NotFound(w, r)
 				return

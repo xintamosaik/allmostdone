@@ -75,7 +75,7 @@ templ InputDueDate(id ID, dueDate string) {
 		fx-method="POST"
 		fx-target={ fmt.Sprintf("#due-date-%d", id) }
 		fx-swap="innerHTML">
-		<input type="date" name="due_date" value={ dueDate } onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()"/>
+		<input type="date" name="due_date" value={ dueDate } onchange="this.form.requestSubmit()"/>
 	</form>
 }
 
