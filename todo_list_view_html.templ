@@ -79,6 +79,33 @@ templ InputDueDate(id ID, dueDate string) {
 	</form>
 }
 
+templ EditCostOfDelay(id ID, costOfDelay CostOfDelay) {
+	<form
+		fx-action={ fmt.Sprintf("/todos/%d/edit/cost-of-delay", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#cost-of-delay-%d", id) }
+		fx-swap="innerHTML">
+		<button type="submit">{ costOfDelay }</button>
+	</form>
+}
+
+templ InputCostOfDelay(id ID, costOfDelay CostOfDelay) {
+	<form
+		fx-action={ fmt.Sprintf("/todos/%d/update/cost-of-delay", id) }
+		fx-method="POST"
+		fx-target={ fmt.Sprintf("#cost-of-delay-%d", id) }
+		fx-swap="innerHTML">
+		<input
+			type="number"
+			name="cost_of_delay"
+			min="-2"
+			max="2"
+			step="1"
+			value={ fmt.Sprintf("%d", costOfDelay) }
+			onchange="this.form.requestSubmit()"/>
+	</form>
+}
+
 templ TodoListPage(todos []Todo) {
 	<button fx-action="/todos/new" fx-target="#output" fx-swap="innerHTML">
 		New todo
@@ -108,7 +135,9 @@ templ TodoListPage(todos []Todo) {
 					<td id={ fmt.Sprintf("due-date-%d", todo.ID) }>
 						@EditDueDate(todo.ID, todoDisplayDueDate(&todo))
 					</td>
-					<td>{ todo.CostOfDelay }</td>
+					<td id={ fmt.Sprintf("cost-of-delay-%d", todo.ID) }>
+						@EditCostOfDelay(todo.ID, todo.CostOfDelay)
+					</td>
 					<td>{ todo.Effort }</td>
 					<td>{ todoDisplayTimestamp(todo.CreatedAt) }</td>
 					<td>{ todoDisplayTimestamp(todo.UpdatedAt) }</td>

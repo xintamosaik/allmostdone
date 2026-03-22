@@ -18,6 +18,8 @@ type TodoPartialUpdate struct {
 	DescriptionSet bool
 	DueDate        *time.Time
 	DueDateSet     bool
+	CostOfDelay    int16
+	CostOfDelaySet bool
 }
 
 func parseInlineForm(r *http.Request) error {
@@ -38,14 +40,17 @@ func updateTodoPartial(ctx context.Context, db *pgxpool.Pool, id int, patch Todo
          SET short = CASE WHEN $1 THEN $2 ELSE short END,
              description = CASE WHEN $3 THEN $4 ELSE description END,
              due_date = CASE WHEN $5 THEN $6 ELSE due_date END,
+             cost_of_delay = CASE WHEN $7 THEN $8 ELSE cost_of_delay END,
              updated_at=now()
-         WHERE id=$7`,
+         WHERE id=$9`,
 		patch.ShortSet,
 		patch.Short,
 		patch.DescriptionSet,
 		patch.Description,
 		patch.DueDateSet,
 		patch.DueDate,
+		patch.CostOfDelaySet,
+		patch.CostOfDelay,
 		id,
 	)
 	if err != nil {
@@ -237,6 +242,55 @@ func (a *App) updateDueDateHandler() http.HandlerFunc {
 	}
 }
 
+// updateCostOfDelayHandler handles inline updates to the cost of delay field. Path: /todos/{id}/update/cost-of-delay
+func (a *App) updateCostOfDelayHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := todoIDFromRequest(r)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		if err = parseInlineForm(r); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		costOfDelayStr := strings.TrimSpace(r.FormValue("cost_of_delay"))
+		if costOfDelayStr == "" {
+			http.Error(w, "cost_of_delay is required", http.StatusBadRequest)
+			return
+		}
+
+		tmp, parseErr := strconv.Atoi(costOfDelayStr)
+		if parseErr != nil {
+			http.Error(w, "cost_of_delay must be a number", http.StatusBadRequest)
+			return
+		}
+		if tmp < -2 || tmp > 2 {
+			http.Error(w, "cost_of_delay must be between -2 and 2", http.StatusBadRequest)
+			return
+		}
+
+		costOfDelay := int16(tmp)
+		if err = updateTodoPartial(r.Context(), a.DB, id, TodoPartialUpdate{
+			CostOfDelay:    costOfDelay,
+			CostOfDelaySet: true,
+		}); err != nil {
+			if err == pgx.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err = EditCostOfDelay(id, costOfDelay).Render(r.Context(), w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
 // editShortHandler swaps the short field into input mode. Path: /todos/{id}/edit/short
 func (a *App) editShortHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -307,6 +361,31 @@ func (a *App) editDueDateHandler() http.HandlerFunc {
 		}
 
 		if err = InputDueDate(todo.ID, todoInputDueDateForCell(todo.DueDate)).Render(r.Context(), w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+// editCostOfDelayHandler swaps the cost of delay field into input mode. Path: /todos/{id}/edit/cost-of-delay
+func (a *App) editCostOfDelayHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := todoIDFromRequest(r)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		todo, err := getTodo(r.Context(), a.DB, id)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err = InputCostOfDelay(todo.ID, todo.CostOfDelay).Render(r.Context(), w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
